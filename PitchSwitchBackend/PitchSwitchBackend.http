@@ -1,6 +1,6 @@
 @PitchSwitchBackend_HostAddress = http://localhost:5118
 
-GET {{PitchSwitchBackend_HostAddress}}/weatherforecast/
+GET {{PitchSwitchBackend_HostAddress}}/pitchswitch/
 Accept: application/json
 
 ###
