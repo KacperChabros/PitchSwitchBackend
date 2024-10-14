@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Dtos.Account;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.TokenService;
@@ -14,13 +15,16 @@ namespace PitchSwitchBackend.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly ITokenService _tokenService;
         private readonly SignInManager<AppUser> _signInManager;
-        public AccountController(UserManager<AppUser> userManager, 
-            ITokenService tokenService, 
-            SignInManager<AppUser> signInManager)
+        private readonly ApplicationDBContext _context;
+        public AccountController(UserManager<AppUser> userManager,
+            ITokenService tokenService,
+            SignInManager<AppUser> signInManager,
+            ApplicationDBContext context)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _signInManager = signInManager;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -28,7 +32,7 @@ namespace PitchSwitchBackend.Controllers
         {
             try
             {
-                if(!ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
@@ -61,7 +65,11 @@ namespace PitchSwitchBackend.Controllers
                                 FavouriteClub = appUser.FavouriteClubId,
                                 ProfilePictureUrl = appUser.ProfilePictureUrl,
                                 Bio = appUser.Bio,
-                                AccessToken = await _tokenService.CreateAccessToken(appUser)
+                                Tokens = new TokensDto
+                                {
+                                    AccessToken = await _tokenService.CreateAccessToken(appUser),
+                                    RefreshToken = await _tokenService.CreateRefreshToken(appUser)
+                                }
                             }
                         );
                     }
@@ -77,44 +85,99 @@ namespace PitchSwitchBackend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex);
+                return StatusCode(500, "An internal server error occurred while processing the request");
             }
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            if(!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
-            }
-
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName.Equals(loginDto.Username.ToLower()));
-            if (user == null)
-            {
-                return Unauthorized("Username and/or password is invalid");
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-            if(!result.Succeeded)
-            {
-                return Unauthorized("Username and/or password is invalid");
-            }
-
-            return Ok(
-                new NewUserDto
+                if (!ModelState.IsValid)
                 {
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    FavouriteClub = user.FavouriteClubId,
-                    ProfilePictureUrl = user.ProfilePictureUrl,
-                    Bio = user.Bio,
-                    AccessToken = await _tokenService.CreateAccessToken(user)
+                    return BadRequest(ModelState);
                 }
-            );
+
+                var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName.Equals(loginDto.Username.ToLower()));
+                if (user == null)
+                {
+                    return Unauthorized("Username and/or password is invalid");
+                }
+
+                var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+                if (!result.Succeeded)
+                {
+                    return Unauthorized("Username and/or password is invalid");
+                }
+
+                return Ok(
+                    new NewUserDto
+                    {
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FavouriteClub = user.FavouriteClubId,
+                        ProfilePictureUrl = user.ProfilePictureUrl,
+                        Bio = user.Bio,
+                        Tokens = new TokensDto
+                        {
+                            AccessToken = await _tokenService.CreateAccessToken(user),
+                            RefreshToken = await _tokenService.CreateRefreshToken(user)
+                        }
+                    }
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An internal server error occurred while processing the request");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An internal server error occurred while processing the request");
+            }
+        }
+
+        [HttpPost("refreshtoken")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto refreshTokenRequestDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName.Equals(refreshTokenRequestDto.UserName));
+
+                if (user == null)
+                {
+                    return Unauthorized(ModelState);
+                }
+
+                var tokens = await _tokenService.RefreshAccessToken(user, refreshTokenRequestDto.RefreshToken);
+
+                if (tokens == null)
+                {
+                    return StatusCode(500, "Refreshing the token failed");
+                }
+
+                return Ok(tokens);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An internal server error occurred while processing the request");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An internal server error occurred while processing the request");
+            }
         }
     }
 }

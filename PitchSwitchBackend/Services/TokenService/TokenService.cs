@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos.Account;
 using PitchSwitchBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace PitchSwitchBackend.Services.TokenService
@@ -12,12 +16,15 @@ namespace PitchSwitchBackend.Services.TokenService
         private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
         private readonly UserManager<AppUser> _userManager;
+        private readonly ApplicationDBContext _context;
         public TokenService(IConfiguration config,
-            UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager,
+            ApplicationDBContext context)
         {
             _config = config;
             _userManager = userManager;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:SigningKey"]));
+            _context = context;
         }
 
         public async Task<string> CreateAccessToken(AppUser appUser)
@@ -69,5 +76,78 @@ namespace PitchSwitchBackend.Services.TokenService
 
             return tokenHandler.WriteToken(token);
         }
+
+        public async Task<string> CreateRefreshToken(AppUser appUser)
+        {
+            var refreshToken = GenerateRandomToken();
+            var refreshTokenHash = HashToken(refreshToken);
+
+            var newRefreshToken = new RefreshToken
+            {
+                RefreshTokenHash = refreshTokenHash,
+                ExpiryDate = DateTime.UtcNow.AddHours(double.Parse(_config["JWT:RefreshTokenExpirationInHours"])),
+                AppUserId = appUser.Id
+            };
+
+            await _context.RefreshTokens.AddAsync(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return refreshToken;
+        }
+
+        public async Task<TokensDto> RefreshAccessToken(AppUser appUser, string refreshToken)
+        {
+            var refreshTokenHash = HashToken(refreshToken);
+
+            var refreshTokenRecord = await _context.RefreshTokens.Where(rt => rt.AppUserId.Equals(appUser.Id) && 
+                                                            rt.RefreshTokenHash.Equals(refreshTokenHash) &&
+                                                            DateTime.UtcNow < rt.ExpiryDate).FirstOrDefaultAsync();
+
+            if (refreshTokenRecord == null)
+            {
+                throw new UnauthorizedAccessException("Unauthorized Access");
+            }
+
+            var newAccessToken = await CreateAccessToken(appUser);
+            var newRefreshToken = await RotateRefreshToken(refreshTokenRecord);
+
+            return new TokensDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+        private string GenerateRandomToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        private string HashToken(string token)
+        {
+            using (var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(_config["JWT:RefreshSigningKey"])))
+            {
+                var tokenBytes = Encoding.UTF8.GetBytes(token);
+                var hashedBytes = hmac.ComputeHash(tokenBytes);
+                return Convert.ToBase64String(hashedBytes);
+            }
+        }
+
+        private async Task<string> RotateRefreshToken(RefreshToken refreshToken)
+        {
+            var newRefreshToken = GenerateRandomToken();
+            var newRefreshTokenHashed = HashToken(newRefreshToken);
+
+            refreshToken.RefreshTokenHash = newRefreshTokenHashed;
+
+            await _context.SaveChangesAsync();
+            return newRefreshToken;
+        }
+
     }
 }

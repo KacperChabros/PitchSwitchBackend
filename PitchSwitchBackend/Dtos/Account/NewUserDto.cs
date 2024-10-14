@@ -9,6 +9,6 @@
         public int? FavouriteClub { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public string? Bio { get; set; }
-        public string AccessToken { get; set; }
+        public TokensDto Tokens { get; set; }
     }
 }
