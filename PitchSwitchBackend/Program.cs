@@ -1,4 +1,5 @@
 
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Models;
+using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
+using PitchSwitchBackend.Services.JobExecutor;
 using PitchSwitchBackend.Services.TokenService;
 
 namespace PitchSwitchBackend
@@ -19,10 +22,22 @@ namespace PitchSwitchBackend
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddHangfire(config =>
+            {
+                config.UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            builder.Services.AddHangfireServer();
+
+            builder.Services.AddScoped<IDeleteExpiredTokensJobService, DeleteExpiredTokensJobService>();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            
             builder.Services.AddSwaggerGen(option =>
             {
                 option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
@@ -91,6 +106,7 @@ namespace PitchSwitchBackend
             });
 
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();
 
@@ -106,9 +122,16 @@ namespace PitchSwitchBackend
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseHangfireDashboard(options: new DashboardOptions
+            {
+                DisplayStorageConnectionString = false
+            });
+
+            var jobExecutor = app.Services.GetRequiredService<IJobExecutor>();
+            RecurringJob.AddOrUpdate("CleanExpiredRefreshTokens", () => jobExecutor.CleanExpiredTokensJob(), Cron.Daily);
 
             app.MapControllers();
-
+            
             app.Run();
         }
     }

@@ -16,10 +16,12 @@ namespace PitchSwitchBackend.Controllers
         private readonly ITokenService _tokenService;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ApplicationDBContext _context;
+        private readonly ILogger<AccountController> _logger;
         public AccountController(UserManager<AppUser> userManager,
             ITokenService tokenService,
             SignInManager<AppUser> signInManager,
-            ApplicationDBContext context)
+            ApplicationDBContext context,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _tokenService = tokenService;
@@ -83,8 +85,14 @@ namespace PitchSwitchBackend.Controllers
                     return StatusCode(500, createdUser.Errors);
                 }
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError($"Error during updating the database in register endpoint:\n{ex.Message}");
+                return StatusCode(500, "An internal server error occurred while processing the request");
+            }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown during registering user:\n{ex.Message}");
                 return StatusCode(500, "An internal server error occurred while processing the request");
             }
         }
@@ -132,10 +140,12 @@ namespace PitchSwitchBackend.Controllers
             }
             catch (DbUpdateException ex)
             {
+                _logger.LogError($"Error during updating the database in login endpoint:\n{ex.Message}");
                 return StatusCode(500, "An internal server error occurred while processing the request");
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown during logging in user:\n{ex.Message}");
                 return StatusCode(500, "An internal server error occurred while processing the request");
             }
         }
@@ -168,14 +178,17 @@ namespace PitchSwitchBackend.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
+                _logger.LogError($"Refresh token is expired:\n{ex.Message}");
                 return Unauthorized(ex.Message);
             }
             catch (DbUpdateException ex)
             {
+                _logger.LogError($"Error during updating the database in refreshtoken endpoint:\n{ex.Message}");
                 return StatusCode(500, "An internal server error occurred while processing the request");
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Exception thrown during refreshing the token:\n{ex.Message}");
                 return StatusCode(500, "An internal server error occurred while processing the request");
             }
         }
