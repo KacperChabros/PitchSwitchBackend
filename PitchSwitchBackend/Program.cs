@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Middleware;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
@@ -131,6 +132,8 @@ namespace PitchSwitchBackend
 
             var jobExecutor = app.Services.GetRequiredService<IJobExecutor>();
             RecurringJob.AddOrUpdate("CleanExpiredRefreshTokens", () => jobExecutor.CleanExpiredTokensJob(), Cron.Daily);
+
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.MapControllers();
             

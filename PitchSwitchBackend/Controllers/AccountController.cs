@@ -13,17 +13,14 @@ namespace PitchSwitchBackend.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
-        private readonly ILogger<AccountController> _logger;
 
         public AccountController(UserManager<AppUser> userManager,
             IAuthService authService,
-            ITokenService tokenService,
-            ILogger<AccountController> logger
+            ITokenService tokenService
             )
         {
             _authService = authService;
             _tokenService = tokenService;
-            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -34,22 +31,14 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
-                var registerResult = await _authService.RegisterUser(registerDto);
+            var registerResult = await _authService.RegisterUser(registerDto);
 
-                if (registerResult.IsSuccess)
-                {
-                    return Ok(registerResult.Data);
-                }
-
-                return BadRequest(registerResult.Errors);
-            }
-            catch (Exception ex)
+            if (registerResult.IsSuccess)
             {
-                _logger.LogError($"Exception thrown during registering user:\n{ex.Message}");
-                return StatusCode(500, "An internal server error occurred while processing the request");
+                return Ok(registerResult.Data);
             }
+
+            return BadRequest(registerResult.Errors);
         }
 
         [HttpPost("login")]
@@ -60,22 +49,14 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            var loginResult = await _authService.LoginUser(loginDto);
+            if (loginResult.IsSuccess)
             {
-                var loginResult = await _authService.LoginUser(loginDto);
-                if (loginResult.IsSuccess)
-                {
-                    return Ok(loginResult.Data);
-                }
-                else
-                {
-                    return Unauthorized(loginResult.ErrorMessage);
-                }
+                return Ok(loginResult.Data);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError($"Exception thrown during logging in user:\n{ex.Message}");
-                return StatusCode(500, "An internal server error occurred while processing the request");
+                return Unauthorized(loginResult.ErrorMessage);
             }
         }
 
@@ -87,27 +68,14 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
-                var refreshTokenResult = await _authService.RefreshToken(refreshTokenRequestDto);
+            var refreshTokenResult = await _authService.RefreshToken(refreshTokenRequestDto);
 
-                if (refreshTokenResult.IsSuccess)
-                {
-                    return Ok(refreshTokenResult.Data);
-                }
+            if (refreshTokenResult.IsSuccess)
+            {
+                return Ok(refreshTokenResult.Data);
+            }
 
-                return Unauthorized(new { Message = refreshTokenResult.ErrorMessage, ModelState });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError($"Refresh token is expired:\n{ex.Message}");
-                return Unauthorized(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception thrown during refreshing the token:\n{ex.Message}");
-                return StatusCode(500, "An internal server error occurred while processing the request");
-            }
+            return Unauthorized(new { Message = refreshTokenResult.ErrorMessage, ModelState });
         }
     }
 }
