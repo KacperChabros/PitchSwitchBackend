@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PitchSwitchBackend.Dtos.Account
+namespace PitchSwitchBackend.Dtos.Account.Requests
 {
     public class RefreshTokenRequestDto
     {

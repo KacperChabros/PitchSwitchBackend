@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PitchSwitchBackend.Data;
-using PitchSwitchBackend.Dtos.Account;
+using PitchSwitchBackend.Dtos.Account.Responses;
 using PitchSwitchBackend.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

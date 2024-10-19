@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Models;
+using PitchSwitchBackend.Services.AuthService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
 using PitchSwitchBackend.Services.JobExecutor;
 using PitchSwitchBackend.Services.TokenService;
@@ -106,6 +107,7 @@ namespace PitchSwitchBackend
             });
 
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();

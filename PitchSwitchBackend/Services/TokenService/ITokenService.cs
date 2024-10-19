@@ -1,4 +1,4 @@
-﻿using PitchSwitchBackend.Dtos.Account;
+﻿using PitchSwitchBackend.Dtos.Account.Responses;
 using PitchSwitchBackend.Models;
 
 namespace PitchSwitchBackend.Services.TokenService

@@ -1,4 +1,4 @@
-﻿namespace PitchSwitchBackend.Dtos.Account
+﻿namespace PitchSwitchBackend.Dtos.Account.Responses
 {
     public class TokensDto
     {
