@@ -105,7 +105,7 @@ namespace PitchSwitchBackend.Services.TokenService
 
             if (refreshTokenRecord == null)
             {
-                throw new UnauthorizedAccessException("Unauthorized Access");
+                return null;
             }
 
             var newAccessToken = await CreateAccessToken(appUser);
