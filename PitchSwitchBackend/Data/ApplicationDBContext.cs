@@ -13,6 +13,7 @@ namespace PitchSwitchBackend.Data
         }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Club> Clubs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -36,6 +37,12 @@ namespace PitchSwitchBackend.Data
                 },
             };
             builder.Entity<IdentityRole>().HasData(roles);
+
+            builder.Entity<AppUser>()
+                .HasOne(u => u.FavouriteClub)
+                .WithMany()
+                .HasForeignKey(u => u.FavouriteClubId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

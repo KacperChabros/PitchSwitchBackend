@@ -9,6 +9,7 @@ using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Middleware;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
+using PitchSwitchBackend.Services.ClubService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
 using PitchSwitchBackend.Services.JobExecutor;
 using PitchSwitchBackend.Services.TokenService;
@@ -109,6 +110,7 @@ namespace PitchSwitchBackend
 
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IClubService, ClubService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();
