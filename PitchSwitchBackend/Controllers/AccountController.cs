@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Account.Requests;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
 using PitchSwitchBackend.Services.TokenService;
+using System.Security.Claims;
 
 namespace PitchSwitchBackend.Controllers
 {
@@ -76,6 +78,98 @@ namespace PitchSwitchBackend.Controllers
             }
 
             return Unauthorized(new { Message = refreshTokenResult.ErrorMessage, ModelState });
+        }
+
+        [HttpPut("updateuserdata")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserDataDto updateUserDataDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+            if (userName == null)
+            {
+                return Unauthorized("You are unauthorized");
+            }
+
+            var appUser = await _authService.FindUserByName(userName);
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+
+            var updateUserDataResult = await _authService.UpdateUserData(appUser, updateUserDataDto);
+
+            if (updateUserDataResult.IsSuccess)
+            {
+                return Ok(updateUserDataResult.Data);
+            }
+
+            return BadRequest(new { Message = updateUserDataResult.ErrorMessage, updateUserDataResult.Errors, ModelState });
+        }
+
+        [HttpPut("changepassword")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+            if (userName == null)
+            {
+                return Unauthorized("You are unauthorized");
+            }
+
+            var appUser = await _authService.FindUserByName(userName);
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+
+            var changePasswordResult = await _authService.ChangePassword(appUser, changePasswordDto);
+
+            if (changePasswordResult.IsSuccess)
+            {
+                return Ok("The password has been successfully changed");
+            }
+
+            return BadRequest(new { Message = changePasswordResult.ErrorMessage, changePasswordResult.Errors });
+        }
+
+        [HttpDelete("deleteuser")]
+        public async Task<IActionResult> DeleteUser()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+            if (userName == null)
+            {
+                return Unauthorized("You are unauthorized");
+            }
+
+            var appUser = await _authService.FindUserByName(userName);
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+
+            var deleteUserResult = await _authService.DeleteUser(appUser);
+
+            if (deleteUserResult.IsSuccess)
+            {
+                return Ok("The user has been successfully deleted");
+            }
+
+            return BadRequest(new { Message = deleteUserResult.ErrorMessage, deleteUserResult.Errors });
         }
     }
 }

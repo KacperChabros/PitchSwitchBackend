@@ -81,7 +81,7 @@ namespace PitchSwitchBackend.Services.AuthService
 
             if (user == null)
             {
-                return ResultDto<TokensDto>.Failed("Refreshing the token failed"); 
+                return ResultDto<TokensDto>.Failed("Refreshing the token failed");
             }
 
             var tokens = await _tokenService.RefreshAccessToken(user, refreshTokenRequestDto.RefreshToken);
@@ -92,6 +92,92 @@ namespace PitchSwitchBackend.Services.AuthService
             }
 
             return ResultDto<TokensDto>.Succeeded(tokens);
+        }
+
+        public async Task<AppUser> FindUserByName(string userName)
+        {
+            var appUser = await _userManager.FindByNameAsync(userName);
+
+            return appUser;
+        }
+
+        public async Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUserDataDto)
+        {
+            if (!string.IsNullOrWhiteSpace(updateUserDataDto.FirstName))
+            {
+                appUser.FirstName = updateUserDataDto.FirstName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateUserDataDto.LastName))
+            {
+                appUser.LastName = updateUserDataDto.LastName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateUserDataDto.Email))
+            {
+                appUser.Email = updateUserDataDto.Email;
+            }
+
+            if (updateUserDataDto.IsProfilePictureUrlDeleted)
+            {
+                appUser.ProfilePictureUrl = null;
+            }
+            else if (!string.IsNullOrWhiteSpace(updateUserDataDto.ProfilePictureUrl))
+            {
+                appUser.ProfilePictureUrl = updateUserDataDto.ProfilePictureUrl;
+            }
+
+            if (updateUserDataDto.IsBioDeleted)
+            {
+                appUser.Bio = null;
+            }
+            else if (!string.IsNullOrWhiteSpace(updateUserDataDto.Bio))
+            {
+                appUser.Bio = updateUserDataDto.Bio;
+            }
+
+            if (updateUserDataDto.IsFavouriteClubIdDeleted)
+            {
+                appUser.FavouriteClubId = null;
+            }
+            else if (updateUserDataDto.FavouriteClubId.HasValue)
+            {
+                appUser.FavouriteClubId = updateUserDataDto.FavouriteClubId.Value;
+            }
+
+            var result = await _userManager.UpdateAsync(appUser);
+            if (result.Succeeded)
+            {
+                return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.ToUpdateUserDataDtoFromModel());
+            }
+
+            return IdentityResultDto<UpdateUserDataResultDto>.Failed(result.Errors);
+        }
+
+        public async Task<IdentityResultDto<string>> ChangePassword(AppUser appUser, ChangePasswordDto changePasswordDto)
+        {
+            var result = await _userManager.ChangePasswordAsync(appUser, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return IdentityResultDto<string>.Succeeded("The password has been successfully changed");
+            }
+
+            return IdentityResultDto<string>.Failed(result.Errors);
+        }
+
+        public async Task<IdentityResultDto<string>> DeleteUser(AppUser appUser)
+        {
+            // delete associated data
+
+            var result = await _userManager.DeleteAsync(appUser);
+
+            if (result.Succeeded)
+            {
+                return IdentityResultDto<string>.Succeeded("User has been successfully deleted");
+            }
+
+            return IdentityResultDto<string>.Failed(result.Errors);
         }
     }
 }

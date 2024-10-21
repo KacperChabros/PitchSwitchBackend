@@ -33,9 +33,23 @@ namespace PitchSwitchBackend.Mappers
                 Email = registerDto.Email,
                 FirstName = registerDto.FirstName,
                 LastName = registerDto.LastName,
-                FavouriteClubId = registerDto.FavouriteClub,
+                FavouriteClubId = registerDto.FavouriteClubId,
                 ProfilePictureUrl = registerDto.ProfilePictureUrl,
                 Bio = registerDto.Bio
+            };
+        }
+
+        public static UpdateUserDataResultDto ToUpdateUserDataDtoFromModel(this AppUser appUser)
+        {
+            return new UpdateUserDataResultDto
+            {
+                UserName = appUser.UserName,
+                Email = appUser.Email,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                FavouriteClubId = appUser.FavouriteClubId,
+                ProfilePictureUrl = appUser.ProfilePictureUrl,
+                Bio = appUser.Bio,
             };
         }
     }
