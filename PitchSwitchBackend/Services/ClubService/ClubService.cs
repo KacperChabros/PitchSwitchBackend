@@ -130,9 +130,6 @@ namespace PitchSwitchBackend.Services.ClubService
 
         public async Task DeleteClub(Club club)
         {
-            //delete associated data
-            
-
             _context.Clubs.Remove(club);
             await _context.SaveChangesAsync();
         }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Club.Requests;
 using PitchSwitchBackend.Services.ClubService;
 
@@ -16,7 +17,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpPost("addclub")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddClub([FromBody] AddClubDto addClubDto)
         {
             if (!ModelState.IsValid)
@@ -35,7 +36,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpGet("getallclubs")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> GetAllClubs([FromQuery] ClubQueryObject clubQuery)
         {
             if (!ModelState.IsValid)
@@ -54,7 +55,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpGet("getclub/{clubId:int}")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> GetClub([FromRoute] int clubId)
         {
             if (!ModelState.IsValid)
@@ -73,7 +74,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpPut("updateclub/{clubId:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateClub([FromRoute] int clubId, [FromBody] UpdateClubDto updateClubDto)
         {
             if (!ModelState.IsValid)
@@ -94,7 +95,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpDelete("deleteclub/{clubId:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteClub([FromRoute] int clubId)
         {
             if (!ModelState.IsValid)
