@@ -9,7 +9,9 @@ using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Middleware;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
+using PitchSwitchBackend.Services.ClubService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
+using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.JobExecutor;
 using PitchSwitchBackend.Services.TokenService;
 
@@ -40,10 +42,10 @@ namespace PitchSwitchBackend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             
-            builder.Services.AddSwaggerGen(option =>
+            builder.Services.AddSwaggerGen(options =>
             {
-                option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
-                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
                     Description = "Please enter a valid token",
@@ -52,7 +54,7 @@ namespace PitchSwitchBackend
                     BearerFormat = "JWT",
                     Scheme = "Bearer"
                 });
-                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
                         new OpenApiSecurityScheme
@@ -109,6 +111,8 @@ namespace PitchSwitchBackend
 
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IClubService, ClubService>();
+            builder.Services.AddScoped<IImageService, ImageService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();
@@ -134,6 +138,7 @@ namespace PitchSwitchBackend
             RecurringJob.AddOrUpdate("CleanExpiredRefreshTokens", () => jobExecutor.CleanExpiredTokensJob(), Cron.Daily);
 
             app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseStaticFiles();
 
             app.MapControllers();
             

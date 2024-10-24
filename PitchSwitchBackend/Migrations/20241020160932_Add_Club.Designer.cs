@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PitchSwitchBackend.Data;
 
@@ -11,9 +12,11 @@ using PitchSwitchBackend.Data;
 namespace PitchSwitchBackend.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241020160932_Add_Club")]
+    partial class Add_Club
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,19 +54,19 @@ namespace PitchSwitchBackend.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "cc09f380-f194-4aff-9c43-183a07e73cd2",
+                            Id = "11d845e0-412e-4bee-b200-0b68dccdbf99",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "a6647646-67b9-4c38-9e0f-764406fc0801",
+                            Id = "bb66689e-a38e-488a-b663-4878f80d0205",
                             Name = "Journalist",
                             NormalizedName = "JOURNALIST"
                         },
                         new
                         {
-                            Id = "6c2aafe1-dd2e-415e-b452-371e9e200fda",
+                            Id = "bcfd7720-f294-479a-a1a8-ca779586cab5",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -396,8 +399,7 @@ namespace PitchSwitchBackend.Migrations
                 {
                     b.HasOne("PitchSwitchBackend.Models.Club", "FavouriteClub")
                         .WithMany()
-                        .HasForeignKey("FavouriteClubId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("FavouriteClubId");
 
                     b.Navigation("FavouriteClub");
                 });

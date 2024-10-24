@@ -5,6 +5,7 @@ using PitchSwitchBackend.Dtos.Account.Requests;
 using PitchSwitchBackend.Dtos.Account.Responses;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
+using PitchSwitchBackend.Services.ClubService;
 using PitchSwitchBackend.Services.TokenService;
 
 namespace PitchSwitchBackend.Services.AuthService
@@ -15,20 +16,32 @@ namespace PitchSwitchBackend.Services.AuthService
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ApplicationDBContext _context;
         private readonly ITokenService _tokenService;
+        private readonly IClubService _clubService;
         public AuthService(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ApplicationDBContext context,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            IClubService clubService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _tokenService = tokenService;
+            _clubService = clubService;
         }
 
         public async Task<IdentityResultDto<NewUserDto>> RegisterUser(RegisterDto registerDto)
         {
+            if (registerDto.FavouriteClubId != null)
+            {
+                var clubExists = await _clubService.ClubExists((int)registerDto.FavouriteClubId);
+                if (!clubExists)
+                {
+                    return IdentityResultDto<NewUserDto>.Failed("This club does not exist!");
+                }
+            }
+
             var appUser = registerDto.ToAppUserFromRegisterDto();
 
             var createdUserResult = await _userManager.CreateAsync(appUser, registerDto.Password);
@@ -94,47 +107,31 @@ namespace PitchSwitchBackend.Services.AuthService
             return ResultDto<TokensDto>.Succeeded(tokens);
         }
 
-        public async Task<AppUser> FindUserByName(string userName)
+        public async Task<AppUser?> FindUserByName(string userName)
         {
-            var appUser = await _userManager.FindByNameAsync(userName);
-
-            return appUser;
+            return await _userManager.FindByNameAsync(userName);
         }
 
         public async Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUserDataDto)
         {
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.FirstName))
-            {
                 appUser.FirstName = updateUserDataDto.FirstName;
-            }
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.LastName))
-            {
                 appUser.LastName = updateUserDataDto.LastName;
-            }
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.Email))
-            {
                 appUser.Email = updateUserDataDto.Email;
-            }
 
             if (updateUserDataDto.IsProfilePictureUrlDeleted)
-            {
                 appUser.ProfilePictureUrl = null;
-            }
             else if (!string.IsNullOrWhiteSpace(updateUserDataDto.ProfilePictureUrl))
-            {
                 appUser.ProfilePictureUrl = updateUserDataDto.ProfilePictureUrl;
-            }
 
             if (updateUserDataDto.IsBioDeleted)
-            {
                 appUser.Bio = null;
-            }
             else if (!string.IsNullOrWhiteSpace(updateUserDataDto.Bio))
-            {
                 appUser.Bio = updateUserDataDto.Bio;
-            }
 
             if (updateUserDataDto.IsFavouriteClubIdDeleted)
             {
@@ -142,6 +139,11 @@ namespace PitchSwitchBackend.Services.AuthService
             }
             else if (updateUserDataDto.FavouriteClubId.HasValue)
             {
+                var clubExists = await _clubService.ClubExists((int)updateUserDataDto.FavouriteClubId);
+                if (!clubExists)
+                {
+                    return IdentityResultDto<UpdateUserDataResultDto>.Failed("This club does not exist!");
+                }
                 appUser.FavouriteClubId = updateUserDataDto.FavouriteClubId.Value;
             }
 

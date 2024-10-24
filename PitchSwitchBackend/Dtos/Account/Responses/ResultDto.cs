@@ -12,9 +12,9 @@
             Data = data;
             ErrorMessage = errorMessage;
         }
-        public static ResultDto<DataType> Succeeded(DataType newUserDto)
+        public static ResultDto<DataType> Succeeded(DataType data)
         {
-            return new ResultDto<DataType>(true, newUserDto, null);
+            return new ResultDto<DataType>(true, data, null);
         }
 
         public static ResultDto<DataType> Failed(string errorMessage)

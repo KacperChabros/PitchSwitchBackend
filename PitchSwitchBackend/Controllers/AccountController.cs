@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Account.Requests;
-using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
-using PitchSwitchBackend.Services.TokenService;
 using System.Security.Claims;
 
 namespace PitchSwitchBackend.Controllers
@@ -14,15 +11,12 @@ namespace PitchSwitchBackend.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly ITokenService _tokenService;
 
-        public AccountController(UserManager<AppUser> userManager,
-            IAuthService authService,
-            ITokenService tokenService
+        public AccountController(
+            IAuthService authService
             )
         {
             _authService = authService;
-            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -40,7 +34,7 @@ namespace PitchSwitchBackend.Controllers
                 return Ok(registerResult.Data);
             }
 
-            return BadRequest(registerResult.Errors);
+            return BadRequest(new { Message = registerResult.ErrorMessage, registerResult.Errors });
         }
 
         [HttpPost("login")]
@@ -166,7 +160,7 @@ namespace PitchSwitchBackend.Controllers
 
             if (deleteUserResult.IsSuccess)
             {
-                return Ok("The user has been successfully deleted");
+                return NoContent();
             }
 
             return BadRequest(new { Message = deleteUserResult.ErrorMessage, deleteUserResult.Errors });
