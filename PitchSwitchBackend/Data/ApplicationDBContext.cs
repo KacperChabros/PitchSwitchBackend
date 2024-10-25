@@ -14,6 +14,7 @@ namespace PitchSwitchBackend.Data
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<Player> Players { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -22,26 +23,40 @@ namespace PitchSwitchBackend.Data
             {
                 new IdentityRole
                 {
+                    Id = "fca020df-3835-438d-ab04-49bcae94904a",
                     Name = "Admin",
                     NormalizedName = "ADMIN"
                 },
                 new IdentityRole
                 {
+                    Id = "2e818aa9-3ac2-4e90-bde8-6e4f0c29455b",
                     Name = "Journalist",
                     NormalizedName = "JOURNALIST"
                 },
                 new IdentityRole
                 {
+                    Id = "e01d1c56-5fd5-41e9-be34-4a9e9f351ae7",
                     Name = "User",
                     NormalizedName = "USER"
                 },
             };
             builder.Entity<IdentityRole>().HasData(roles);
 
+            SetForeignKeys(builder);
+
+        }
+
+        private void SetForeignKeys(ModelBuilder builder)
+        {
             builder.Entity<AppUser>()
                 .HasOne(u => u.FavouriteClub)
                 .WithMany()
                 .HasForeignKey(u => u.FavouriteClubId)
+                .OnDelete(DeleteBehavior.SetNull);
+            builder.Entity<Player>()
+                .HasOne(p => p.Club)
+                .WithMany()
+                .HasForeignKey(u => u.ClubId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

@@ -14,7 +14,7 @@ namespace PitchSwitchBackend.Mappers
                 Email = model.Email,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                FavouriteClubId = model.FavouriteClubId,
+                FavouriteClub = model.FavouriteClub?.FromModelToClubDto(),
                 Bio = model.Bio,
                 ProfilePictureUrl = model.ProfilePictureUrl,
                 Tokens = new TokensDto
@@ -47,7 +47,7 @@ namespace PitchSwitchBackend.Mappers
                 Email = appUser.Email,
                 FirstName = appUser.FirstName,
                 LastName = appUser.LastName,
-                FavouriteClubId = appUser.FavouriteClubId,
+                FavouriteClub = appUser.FavouriteClub?.FromModelToClubDto(),
                 ProfilePictureUrl = appUser.ProfilePictureUrl,
                 Bio = appUser.Bio,
             };

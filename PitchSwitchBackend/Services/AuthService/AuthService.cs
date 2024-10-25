@@ -53,6 +53,11 @@ namespace PitchSwitchBackend.Services.AuthService
                 {
                     var accessToken = await _tokenService.CreateAccessToken(appUser);
                     var refreshToken = await _tokenService.CreateRefreshToken(appUser);
+                    if (appUser.FavouriteClubId != null)
+                    {
+                        var club = await _clubService.GetClubById((int)appUser.FavouriteClubId);
+                        appUser.FavouriteClub = club;
+                    }
 
                     return IdentityResultDto<NewUserDto>.Succeeded(appUser.ToNewUserDtoFromModel(accessToken, refreshToken));
                 }
@@ -69,7 +74,7 @@ namespace PitchSwitchBackend.Services.AuthService
 
         public async Task<ResultDto<NewUserDto>> LoginUser(LoginDto loginDto)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName.Equals(loginDto.Username.ToLower()));
+            var user = await _userManager.Users.Include(u => u.FavouriteClub).FirstOrDefaultAsync(x => x.UserName.Equals(loginDto.Username.ToLower()));
             if (user == null)
             {
                 return ResultDto<NewUserDto>.Failed("Username and/or password is invalid");
@@ -150,6 +155,12 @@ namespace PitchSwitchBackend.Services.AuthService
             var result = await _userManager.UpdateAsync(appUser);
             if (result.Succeeded)
             {
+                if (appUser.FavouriteClubId.HasValue)
+                {
+                    var club = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
+                    appUser.FavouriteClub = club;
+                }
+
                 return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.ToUpdateUserDataDtoFromModel());
             }
 

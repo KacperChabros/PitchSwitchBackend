@@ -27,6 +27,6 @@ namespace PitchSwitchBackend.Models
         [StringLength(255)]
         public string Stadium { get; set; }
         [StringLength(255)]
-        public string? LogoUrl {  get; set; }
+        public string? LogoUrl { get; set; }
     }
 }

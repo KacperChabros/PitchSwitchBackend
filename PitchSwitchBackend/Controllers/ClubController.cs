@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Club.Requests;
+using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Services.ClubService;
 
 namespace PitchSwitchBackend.Controllers
@@ -70,7 +71,7 @@ namespace PitchSwitchBackend.Controllers
                 return NotFound("There is no such club");
             }
 
-            return Ok(club);
+            return Ok(club.FromModelToClubDto());
         }
 
         [HttpPut("updateclub/{clubId:int}")]
