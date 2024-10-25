@@ -28,5 +28,9 @@ namespace PitchSwitchBackend.Models
         public string Stadium { get; set; }
         [StringLength(255)]
         public string? LogoUrl { get; set; }
+        [Required]
+        public bool IsArchived { get; set; } = false;
+        public virtual ICollection<Player> Players { get; set; } = new List<Player>();
+        public virtual ICollection<AppUser> Users { get; set; } = new List<AppUser>();
     }
 }

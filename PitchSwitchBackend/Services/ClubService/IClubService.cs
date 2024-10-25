@@ -11,6 +11,7 @@ namespace PitchSwitchBackend.Services.ClubService
         Task<List<ClubDto>> GetAllClubs(ClubQueryObject clubQuery);
         Task<Club?> GetClubById(int clubId);
         Task<ClubDto?> UpdateClub(Club club, UpdateClubDto updateClubDto);
-        Task DeleteClub(Club club);
+        Task<bool> ArchiveClub(int clubId);
+        Task<bool> RestoreClub(int clubId);
     }
 }

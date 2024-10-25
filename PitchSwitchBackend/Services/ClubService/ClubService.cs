@@ -32,7 +32,7 @@ namespace PitchSwitchBackend.Services.ClubService
 
         public async Task<List<ClubDto>> GetAllClubs(ClubQueryObject clubQuery)
         {
-            var clubs = _context.Clubs.AsQueryable();
+            var clubs = _context.Clubs.AsQueryable().Where(c => !c.IsArchived);
 
             clubs = FilterClubs(clubs, clubQuery);
 
@@ -83,10 +83,42 @@ namespace PitchSwitchBackend.Services.ClubService
             return club.FromModelToClubDto();
         }
 
-        public async Task DeleteClub(Club club)
+        public async Task<bool> ArchiveClub(int clubId)
         {
-            _context.Clubs.Remove(club);
+            var club = await _context.Clubs
+                .Include(c => c.Players)
+                .Include(c => c.Users)
+                .FirstOrDefaultAsync(c => c.ClubId == clubId);
+
+            if (club == null)
+                return false;
+
+            foreach (var player in club.Players)
+            {
+                player.ClubId = null;
+            }
+
+            foreach (var user in club.Users)
+            {
+                user.FavouriteClubId = null;
+            }
+
+            club.IsArchived = true;
             await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> RestoreClub(int clubId)
+        {
+            var club = await _context.Clubs.FirstOrDefaultAsync(c => c.ClubId == clubId);
+            if (club == null)
+                return false;
+
+            club.IsArchived = false;
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         private IQueryable<Club> FilterClubs(IQueryable<Club> clubs, ClubQueryObject clubQuery)
