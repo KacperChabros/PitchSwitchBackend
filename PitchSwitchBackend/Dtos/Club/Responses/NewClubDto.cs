@@ -11,5 +11,6 @@
         public int FoundationYear { get; set; }
         public string Stadium { get; set; }
         public string? LogoUrl { get; set; }
+        public bool IsArchived { get; set; }
     }
 }

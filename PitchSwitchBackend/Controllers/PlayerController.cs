@@ -44,14 +44,14 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var clubs = await _playerService.GetPlayers(playerQuery);
+            var players = await _playerService.GetPlayers(playerQuery);
 
-            if (clubs == null)
+            if (players == null || players.Count == 0)
             {
-                return NotFound("There are no players");
+                return NotFound("There are no players matching the criteria");
             }
 
-            return Ok(clubs);
+            return Ok(players);
         }
 
         [HttpGet("getplayer/{playerId:int}")]

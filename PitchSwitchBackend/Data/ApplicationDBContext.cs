@@ -15,6 +15,7 @@ namespace PitchSwitchBackend.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
         public DbSet<Player> Players { get; set; }
+        public DbSet<Transfer> Transfers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -50,14 +51,33 @@ namespace PitchSwitchBackend.Data
         {
             builder.Entity<AppUser>()
                 .HasOne(u => u.FavouriteClub)
-                .WithMany()
+                .WithMany(c => c.Users)
                 .HasForeignKey(u => u.FavouriteClubId)
                 .OnDelete(DeleteBehavior.SetNull);
+            
             builder.Entity<Player>()
                 .HasOne(p => p.Club)
-                .WithMany()
+                .WithMany(c => c.Players)
                 .HasForeignKey(u => u.ClubId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Transfer>()
+                .HasOne(t => t.Player)
+                .WithMany()
+                .HasForeignKey(t => t.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Transfer>()
+                .HasOne(t => t.SellingClub)
+                .WithMany()
+                .HasForeignKey(t => t.SellingClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Transfer>()
+                .HasOne(t => t.BuyingClub)
+                .WithMany()
+                .HasForeignKey(t => t.BuyingClubId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

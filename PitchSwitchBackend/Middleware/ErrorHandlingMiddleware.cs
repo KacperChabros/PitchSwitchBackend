@@ -17,6 +17,19 @@
             {
                 await _next(context);
             }
+            catch (ArgumentException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                context.Response.ContentType = "application/json";
+                var message = $"Bad Request:\n{ex.Message}";
+
+                var response = new
+                {
+                    StatusCode = context.Response.StatusCode,
+                    Message = message
+                };
+                await context.Response.WriteAsJsonAsync(response);
+            }
             catch (Exception ex)
             {
                 _logger.LogError($"Exception thrown while processing the request:\nMessage: {ex.Message}\nException: \n{ex}");

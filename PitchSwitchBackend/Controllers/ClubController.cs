@@ -95,25 +95,42 @@ namespace PitchSwitchBackend.Controllers
             return Ok(updatedClub);
         }
 
-        [HttpDelete("deleteclub/{clubId:int}")]
+        [HttpPut("archiveclub/{clubId:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteClub([FromRoute] int clubId)
+        public async Task<IActionResult> ArchiveClub([FromRoute] int clubId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var club = await _clubService.GetClubById(clubId);
+            var result = await _clubService.ArchiveClub(clubId);
 
-            if (club == null)
+            if (!result)
             {
                 return NotFound("There is no such club");
             }
 
-            await _clubService.DeleteClub(club);
+            return Ok();
+        }
 
-            return NoContent();
+        [HttpPut("restoreclub/{clubId:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RestoreClub([FromRoute] int clubId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _clubService.RestoreClub(clubId);
+
+            if (!result)
+            {
+                return NotFound("There is no such club");
+            }
+
+            return Ok();
         }
     }
 }

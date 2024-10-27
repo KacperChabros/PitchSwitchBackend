@@ -17,6 +17,7 @@ namespace PitchSwitchBackend.Dtos.Club.Requests
         public string? City { get; set; } = null;
         [RegularExpression(@"^\d{4}$", ErrorMessage = "Foundation Year must be a four-digit number.")]
         public int? FoundationYear { get; set; } = null;
+        [StringLength(2, MinimumLength = 2)]
         public string FoundationYearComparison { get; set; } = NumberComparisonTypes.Equal;
         [StringLength(255)]
         public string? Stadium { get; set; } = null;

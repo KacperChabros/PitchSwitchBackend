@@ -33,7 +33,8 @@ namespace PitchSwitchBackend.Mappers
                 City = club.City,
                 FoundationYear = club.FoundationYear,
                 Stadium = club.Stadium,
-                LogoUrl = club.LogoUrl
+                LogoUrl = club.LogoUrl,
+                IsArchived = club.IsArchived
             };
         }
 
@@ -49,7 +50,8 @@ namespace PitchSwitchBackend.Mappers
                 City = club.City,
                 FoundationYear = club.FoundationYear,
                 Stadium = club.Stadium,
-                LogoUrl = club.LogoUrl
+                LogoUrl = club.LogoUrl,
+                IsArchived = club.IsArchived
             };
         }
     }

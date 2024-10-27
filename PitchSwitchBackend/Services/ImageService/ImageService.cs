@@ -64,7 +64,7 @@ namespace PitchSwitchBackend.Services.ImageService
 
             if (file.Length > 3 * 1024 * 1024 || file.Length < 1024) // 3 MB
             {
-                throw new InvalidOperationException("Invalid file size");
+                throw new ArgumentException("Invalid file size");
             }
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
@@ -72,13 +72,13 @@ namespace PitchSwitchBackend.Services.ImageService
 
             if (!allowedExtensions.Contains(extension))
             {
-                throw new InvalidOperationException("File type is not allowed. Only image files are allowed.");
+                throw new ArgumentException("File type is not allowed. Only image files are allowed.");
             }
 
             var allowedMimeTypes = new[] { "image/jpeg", "image/png", "image/gif" };
             if (!allowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
             {
-                throw new InvalidOperationException("Invalid file type. Only image files are allowed.");
+                throw new ArgumentException("Invalid file type. Only image files are allowed.");
             }
         }
 
@@ -88,7 +88,7 @@ namespace PitchSwitchBackend.Services.ImageService
 
             if (image.Width > 2000 || image.Height > 2000)
             {
-                throw new InvalidOperationException("Image dimensions are too large.");
+                throw new ArgumentException("Image dimensions are too large.");
             }
 
             image.Metadata.ExifProfile = null;

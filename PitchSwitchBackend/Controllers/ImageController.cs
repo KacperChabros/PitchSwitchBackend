@@ -31,9 +31,6 @@ namespace PitchSwitchBackend.Controllers
                 return Forbid();
             }
 
-            if (imageUploadDto.FormFile == null || imageUploadDto.FormFile.Length == 0)
-                return BadRequest("No file provided.");
-
             string folderName = GetUploadFolder(imageUploadDto.EntityType);
             if (string.IsNullOrEmpty(folderName))
             {
