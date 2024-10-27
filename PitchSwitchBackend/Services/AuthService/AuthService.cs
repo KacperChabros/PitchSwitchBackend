@@ -33,13 +33,9 @@ namespace PitchSwitchBackend.Services.AuthService
 
         public async Task<IdentityResultDto<NewUserDto>> RegisterUser(RegisterDto registerDto)
         {
-            if (registerDto.FavouriteClubId != null)
+            if (!await ValidateClubExists(registerDto.FavouriteClubId))
             {
-                var clubExists = await _clubService.ClubExists((int)registerDto.FavouriteClubId);
-                if (!clubExists)
-                {
-                    return IdentityResultDto<NewUserDto>.Failed("This club does not exist!");
-                }
+                throw new ArgumentException("Given club does not exist");
             }
 
             var appUser = registerDto.ToAppUserFromRegisterDto();
@@ -55,8 +51,7 @@ namespace PitchSwitchBackend.Services.AuthService
                     var refreshToken = await _tokenService.CreateRefreshToken(appUser);
                     if (appUser.FavouriteClubId != null)
                     {
-                        var club = await _clubService.GetClubById((int)appUser.FavouriteClubId);
-                        appUser.FavouriteClub = club;
+                        appUser.FavouriteClub = await _clubService.GetClubById((int)appUser.FavouriteClubId);
                     }
 
                     return IdentityResultDto<NewUserDto>.Succeeded(appUser.ToNewUserDtoFromModel(accessToken, refreshToken));
@@ -119,6 +114,11 @@ namespace PitchSwitchBackend.Services.AuthService
 
         public async Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUserDataDto)
         {
+            if (!await ValidateClubExists(updateUserDataDto.FavouriteClubId))
+            {
+                throw new ArgumentException("Given club does not exist");
+            }
+
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.FirstName))
                 appUser.FirstName = updateUserDataDto.FirstName;
 
@@ -144,10 +144,9 @@ namespace PitchSwitchBackend.Services.AuthService
             }
             else if (updateUserDataDto.FavouriteClubId.HasValue)
             {
-                var clubExists = await _clubService.ClubExists((int)updateUserDataDto.FavouriteClubId);
-                if (!clubExists)
+                if (!await ValidateClubExists(updateUserDataDto.FavouriteClubId))
                 {
-                    return IdentityResultDto<UpdateUserDataResultDto>.Failed("This club does not exist!");
+                    throw new ArgumentException("Given club does not exist");
                 }
                 appUser.FavouriteClubId = updateUserDataDto.FavouriteClubId.Value;
             }
@@ -157,8 +156,7 @@ namespace PitchSwitchBackend.Services.AuthService
             {
                 if (appUser.FavouriteClubId.HasValue)
                 {
-                    var club = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
-                    appUser.FavouriteClub = club;
+                    appUser.FavouriteClub = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
                 }
 
                 return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.ToUpdateUserDataDtoFromModel());
@@ -191,6 +189,11 @@ namespace PitchSwitchBackend.Services.AuthService
             }
 
             return IdentityResultDto<string>.Failed(result.Errors);
+        }
+
+        private async Task<bool> ValidateClubExists(int? clubId)
+        {
+            return clubId == null || await _clubService.ClubExists(clubId.Value);
         }
     }
 }

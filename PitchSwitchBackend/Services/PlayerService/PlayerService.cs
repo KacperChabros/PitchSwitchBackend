@@ -22,6 +22,11 @@ namespace PitchSwitchBackend.Services.PlayerService
 
         public async Task<NewPlayerDto?> AddPlayer(AddPlayerDto addPlayerDto)
         {
+            if (!await ValidateClubExists(addPlayerDto.ClubId))
+            {
+                throw new ArgumentException("Given club does not exist");
+            }
+
             var result = await _context.Players.AddAsync(addPlayerDto.FromAddNewPlayerDtoToModel());
             await _context.SaveChangesAsync();
             var player = result.Entity;
@@ -31,7 +36,7 @@ namespace PitchSwitchBackend.Services.PlayerService
                 player.Club = club;
             }
 
-            return result.Entity?.FromModelToNewPlayerDto();
+            return player?.FromModelToNewPlayerDto();
         }
 
         public async Task<List<PlayerDto>> GetPlayers(PlayerQueryObject playerQuery)
@@ -61,6 +66,11 @@ namespace PitchSwitchBackend.Services.PlayerService
 
         public async Task<PlayerDto?> UpdatePlayer(Player player, UpdatePlayerDto updatePlayerDto)
         {
+            if (!await ValidateClubExists(updatePlayerDto.ClubId))
+            {
+                throw new ArgumentException("Given club does not exist");
+            }
+
             if (!string.IsNullOrWhiteSpace(updatePlayerDto.FirstName))
                 player.FirstName = updatePlayerDto.FirstName;
 
@@ -111,6 +121,16 @@ namespace PitchSwitchBackend.Services.PlayerService
             await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> PlayerExists(int playerId)
+        {
+            return await _context.Players.AnyAsync(p => p.PlayerId == playerId);
+        }
+
+        private async Task<bool> ValidateClubExists(int? clubId)
+        {
+            return clubId == null || await _clubService.ClubExists(clubId.Value);
+        }
+
         private IQueryable<Player> FilterPlayers(IQueryable<Player> players, PlayerQueryObject playerQuery)
         {
             if (!string.IsNullOrWhiteSpace(playerQuery.FirstName))
@@ -132,12 +152,9 @@ namespace PitchSwitchBackend.Services.PlayerService
             {
                 players = players.Where(p => p.ClubId == playerQuery.ClubId);
             }
-            else if (playerQuery.IsUnemployed != null)
+            else if (playerQuery.FilterForUnemployedIfClubIsEmpty)
             {
-                if (playerQuery.IsUnemployed == true)
-                    players = players.Where(p => p.ClubId == null);
-                else
-                    players = players.Where(p => p.ClubId != null);
+                players = players.Where(p => p.ClubId == null);
             }
 
             if (playerQuery.DateOfBirth != null)
