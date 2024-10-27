@@ -16,6 +16,7 @@ namespace PitchSwitchBackend.Data
         public DbSet<Club> Clubs { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<TransferRumour> TransferRumours { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -77,6 +78,24 @@ namespace PitchSwitchBackend.Data
                 .HasOne(t => t.BuyingClub)
                 .WithMany()
                 .HasForeignKey(t => t.BuyingClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TransferRumour>()
+                .HasOne(tr => tr.Player)
+                .WithMany()
+                .HasForeignKey(tr => tr.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<TransferRumour>()
+                .HasOne(tr => tr.SellingClub)
+                .WithMany()
+                .HasForeignKey(tr => tr.SellingClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TransferRumour>()
+                .HasOne(tr => tr.BuyingClub)
+                .WithMany()
+                .HasForeignKey(tr => tr.BuyingClubId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

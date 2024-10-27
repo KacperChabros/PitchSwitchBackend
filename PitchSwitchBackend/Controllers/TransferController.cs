@@ -74,7 +74,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpPut("updatetransfer/{transferId:int}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateTransfer([FromRoute] int transferId, [FromBody] UpdateTransferDto updateTransferDto)
         {
             if (!ModelState.IsValid)
