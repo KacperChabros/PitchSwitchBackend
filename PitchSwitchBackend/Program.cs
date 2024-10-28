@@ -15,6 +15,7 @@ using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.JobExecutor;
 using PitchSwitchBackend.Services.PlayerService;
 using PitchSwitchBackend.Services.TokenService;
+using PitchSwitchBackend.Services.TransferRumourService;
 using PitchSwitchBackend.Services.TransferService;
 
 namespace PitchSwitchBackend
@@ -117,6 +118,7 @@ namespace PitchSwitchBackend
             builder.Services.AddScoped<IImageService, ImageService>();
             builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<ITransferService, TransferService>();
+            builder.Services.AddScoped<ITransferRumourService, TransferRumourService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();

@@ -22,6 +22,11 @@ namespace PitchSwitchBackend.Services.ClubService
             return await _context.Clubs.AnyAsync(c => c.ClubId == clubId);
         }
 
+        public async Task<bool> ClubExistsAndNotArchived(int clubId)
+        {
+            return await _context.Clubs.AnyAsync(c => c.ClubId == clubId && !c.IsArchived);
+        }
+
         public async Task<NewClubDto?> AddClub(AddClubDto addClubDto)
         {
             var result = await _context.Clubs.AddAsync(addClubDto.FromAddClubDtoToModel());

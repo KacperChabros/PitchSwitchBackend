@@ -193,7 +193,7 @@ namespace PitchSwitchBackend.Services.AuthService
 
         private async Task<bool> ValidateClubExists(int? clubId)
         {
-            return clubId == null || await _clubService.ClubExists(clubId.Value);
+            return clubId == null || await _clubService.ClubExistsAndNotArchived(clubId.Value);
         }
     }
 }

@@ -126,9 +126,15 @@ namespace PitchSwitchBackend.Services.PlayerService
             return await _context.Players.AnyAsync(p => p.PlayerId == playerId);
         }
 
+        public async Task<int?> GetPlayerClubIdById(int playerId)
+        {
+            var player = await GetPlayerById(playerId);
+            return player?.ClubId;
+        }
+
         private async Task<bool> ValidateClubExists(int? clubId)
         {
-            return clubId == null || await _clubService.ClubExists(clubId.Value);
+            return clubId == null || await _clubService.ClubExistsAndNotArchived(clubId.Value);
         }
 
         private IQueryable<Player> FilterPlayers(IQueryable<Player> players, PlayerQueryObject playerQuery)

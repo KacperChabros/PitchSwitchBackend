@@ -178,7 +178,7 @@ namespace PitchSwitchBackend.Services.TransferService
         }
         private async Task<bool> ValidateClubExists(int? clubId)
         {
-            return clubId == null || await _clubService.ClubExists(clubId.Value);
+            return clubId == null || await _clubService.ClubExistsAndNotArchived(clubId.Value);
         }
 
         private IQueryable<Transfer> FilterTransfers(IQueryable<Transfer> transfers, TransferQueryObject transferQuery)

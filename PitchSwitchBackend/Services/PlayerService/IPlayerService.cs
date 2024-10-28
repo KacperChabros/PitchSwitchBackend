@@ -13,5 +13,6 @@ namespace PitchSwitchBackend.Services.PlayerService
         Task<PlayerDto?> UpdatePlayer(Player player, UpdatePlayerDto updatePlayerDto);
         Task DeletePlayer(Player player);
         Task<bool> PlayerExists(int playerId);
+        Task<int?> GetPlayerClubIdById(int playerId);
     }
 }

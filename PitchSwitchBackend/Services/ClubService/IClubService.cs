@@ -7,6 +7,7 @@ namespace PitchSwitchBackend.Services.ClubService
     public interface IClubService
     {
         Task<bool> ClubExists(int clubId);
+        Task<bool> ClubExistsAndNotArchived(int clubId);
         Task<NewClubDto?> AddClub(AddClubDto addClubDto);
         Task<List<ClubDto>> GetAllClubs(ClubQueryObject clubQuery);
         Task<Club?> GetClubById(int clubId);
