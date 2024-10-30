@@ -25,5 +25,6 @@ namespace PitchSwitchBackend.Models
         public Transfer? Transfer { get; set; }
         public int? TransferRumourId { get; set; }
         public TransferRumour? TransferRumour { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

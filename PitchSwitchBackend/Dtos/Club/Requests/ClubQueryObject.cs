@@ -24,7 +24,7 @@ namespace PitchSwitchBackend.Dtos.Club.Requests
         [StringLength(50)]
         public string? SortBy { get; set; } = null;
         public bool IsDescending { get; set; } = false;
-        [Range(0, 1000)]
+        [Range(1, 1000)]
         public int PageNumber { get; set; } = 1;
         [Range(1, 50)]
         public int PageSize { get; set; } = 10;

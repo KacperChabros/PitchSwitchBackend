@@ -29,14 +29,9 @@ namespace PitchSwitchBackend.Services.PlayerService
 
             var result = await _context.Players.AddAsync(addPlayerDto.FromAddNewPlayerDtoToModel());
             await _context.SaveChangesAsync();
-            var player = result.Entity;
-            if(player?.ClubId != null)
-            {
-                var club = await _clubService.GetClubById(player.ClubId.GetValueOrDefault());
-                player.Club = club;
-            }
+            var addedPlayer = await GetPlayerByIdWithAllData(result.Entity.PlayerId);
 
-            return player?.FromModelToNewPlayerDto();
+            return addedPlayer?.FromModelToNewPlayerDto();
         }
 
         public async Task<List<PlayerDto>> GetPlayers(PlayerQueryObject playerQuery)
@@ -116,9 +111,9 @@ namespace PitchSwitchBackend.Services.PlayerService
 
             await _context.SaveChangesAsync();
 
-            await _context.Entry(player).Reference(p => p.Club).LoadAsync();
+            var updatedPlayer = await GetPlayerByIdWithAllData(player.PlayerId);
 
-            return player.FromModelToPlayerDto();
+            return updatedPlayer?.FromModelToPlayerDto();
         }
 
         public async Task DeletePlayer(Player player)

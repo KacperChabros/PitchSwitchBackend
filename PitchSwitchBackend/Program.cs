@@ -10,6 +10,7 @@ using PitchSwitchBackend.Middleware;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.AuthService;
 using PitchSwitchBackend.Services.ClubService;
+using PitchSwitchBackend.Services.CommentService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
 using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.JobExecutor;
@@ -121,6 +122,7 @@ namespace PitchSwitchBackend
             builder.Services.AddScoped<ITransferService, TransferService>();
             builder.Services.AddScoped<ITransferRumourService, TransferRumourService>();
             builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();

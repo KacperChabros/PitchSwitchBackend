@@ -4,7 +4,7 @@ using PitchSwitchBackend.Dtos.TransferRumour.Responses;
 
 namespace PitchSwitchBackend.Dtos.Post.Responses
 {
-    public class NewPostDto
+    public class ListElementPostDto
     {
         public int PostId { get; set; }
         public string Title { get; set; }

@@ -41,20 +41,8 @@ namespace PitchSwitchBackend.Services.TransferService
                 await _playerService.UpdatePlayer(player, updatePlayerDto);
             }
 
-            if (transfer != null)
-            {
-                if (transfer.SellingClubId.HasValue)
-                {
-                    transfer.SellingClub = await _clubService.GetClubById(transfer.SellingClubId.GetValueOrDefault());
-                }
-                if (transfer.BuyingClubId.HasValue)
-                {
-                    transfer.BuyingClub = await _clubService.GetClubById(transfer.BuyingClubId.GetValueOrDefault());
-                }
-                transfer.Player = await _playerService.GetPlayerById(transfer.PlayerId);
-            }
-
-            return transfer?.FromModelToNewTransferDto();
+            var addedTransfer = await GetTransferWithDataById(result.Entity.TransferId);
+            return addedTransfer?.FromModelToNewTransferDto();
         }
 
         public async Task<List<TransferDto>> GetTransfers(TransferQueryObject transferQuery)
