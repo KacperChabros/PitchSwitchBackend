@@ -10,8 +10,8 @@ namespace PitchSwitchBackend.Dtos.Transfer.Responses
         public TransferType TransferType { get; set; }
         public DateTime TransferDate { get; set; }
         public decimal TransferFee { get; set; }
-        public PlayerDto Player { get; set; }
-        public ClubDto? SellingClub { get; set; }
-        public ClubDto? BuyingClub { get; set; }
+        public MinimalPlayerDto Player { get; set; }
+        public MinimalClubDto? SellingClub { get; set; }
+        public MinimalClubDto? BuyingClub { get; set; }
     }
 }

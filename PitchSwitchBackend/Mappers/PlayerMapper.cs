@@ -39,7 +39,7 @@ namespace PitchSwitchBackend.Mappers
                 PreferredFoot = player.PreferredFoot,
                 MarketValue = player.MarketValue,
                 PhotoUrl = player.PhotoUrl,
-                Club = player.Club?.FromModelToClubDto()
+                Club = player.Club?.FromModelToMinimalClubDto()
             };
         }
 
@@ -58,7 +58,23 @@ namespace PitchSwitchBackend.Mappers
                 PreferredFoot = player.PreferredFoot,
                 MarketValue = player.MarketValue,
                 PhotoUrl = player.PhotoUrl,
-                Club = player.Club?.FromModelToClubDto()
+                Club = player.Club?.FromModelToMinimalClubDto()
+            };
+        }
+
+        public static MinimalPlayerDto FromModelToMinimalPlayerDto(this Player player)
+        {
+            return new MinimalPlayerDto
+            {
+                PlayerId = player.PlayerId,
+                FirstName = player.FirstName,
+                LastName = player.LastName,
+                DateOfBirth = player.DateOfBirth,
+                Nationality = player.Nationality,
+                Position = player.Position,
+                MarketValue = player.MarketValue,
+                PhotoUrl = player.PhotoUrl,
+                Club = player.Club?.FromModelToMinimalClubDto()
             };
         }
     }

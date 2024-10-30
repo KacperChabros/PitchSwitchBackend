@@ -29,5 +29,7 @@ namespace PitchSwitchBackend.Models
         public string? Bio { get; set; }
         public int? FavouriteClubId { get; set; }
         public Club? FavouriteClub {  get; set; }
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+        public virtual ICollection<TransferRumour> TransferRumours { get; set; } = new List<TransferRumour>();
     }
 }

@@ -14,9 +14,9 @@ namespace PitchSwitchBackend.Mappers
                 TransferDate = transfer.TransferDate,
                 TransferType = transfer.TransferType,
                 TransferFee = transfer.TransferFee,
-                Player = transfer.Player.FromModelToPlayerDto(),
-                SellingClub = transfer.SellingClub?.FromModelToClubDto(),
-                BuyingClub = transfer.BuyingClub?.FromModelToClubDto()
+                Player = transfer.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transfer.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transfer.BuyingClub?.FromModelToMinimalClubDto()
             };
         }
 
@@ -28,9 +28,23 @@ namespace PitchSwitchBackend.Mappers
                 TransferDate = transfer.TransferDate,
                 TransferType = transfer.TransferType,
                 TransferFee = transfer.TransferFee,
-                Player = transfer.Player.FromModelToPlayerDto(),
-                SellingClub = transfer.SellingClub?.FromModelToClubDto(),
-                BuyingClub = transfer.BuyingClub?.FromModelToClubDto()
+                Player = transfer.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transfer.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transfer.BuyingClub?.FromModelToMinimalClubDto()
+            };
+        }
+
+        public static MinimalTransferDto FromModelToMinimalTransferDto(this Transfer transfer)
+        {
+            return new MinimalTransferDto
+            {
+                TransferId = transfer.TransferId,
+                TransferDate = transfer.TransferDate,
+                TransferType = transfer.TransferType,
+                TransferFee = transfer.TransferFee,
+                Player = transfer.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transfer.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transfer.BuyingClub?.FromModelToMinimalClubDto()
             };
         }
 

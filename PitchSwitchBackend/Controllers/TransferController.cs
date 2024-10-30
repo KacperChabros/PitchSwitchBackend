@@ -103,7 +103,7 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var transfer = await _transferService.GetTransferById(transferId);
+            var transfer = await _transferService.GetTransferWithDataById(transferId);
 
             if (transfer == null)
             {

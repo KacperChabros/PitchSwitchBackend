@@ -64,6 +64,12 @@ namespace PitchSwitchBackend.Services.PlayerService
             return await _context.Players.Include(p => p.Club).FirstOrDefaultAsync(p => p.PlayerId == playerId);
         }
 
+        public async Task<Player?> GetPlayerByIdWithAllData(int playerId)
+        {
+            return await _context.Players.Include(p => p.Club).Include(p => p.Transfers).Include(p => p.TransferRumours)
+                .FirstOrDefaultAsync(p => p.PlayerId == playerId);
+        }
+
         public async Task<PlayerDto?> UpdatePlayer(Player player, UpdatePlayerDto updatePlayerDto)
         {
             if (!await ValidateClubExists(updatePlayerDto.ClubId))
@@ -117,6 +123,24 @@ namespace PitchSwitchBackend.Services.PlayerService
 
         public async Task DeletePlayer(Player player)
         {
+            foreach (var transfer in player.Transfers)
+            {
+                foreach (var post in transfer.Posts)
+                {
+                    post.TransferId = null;
+                }
+            }
+            _context.Transfers.RemoveRange(player.Transfers);
+
+            foreach (var transferRumour in player.TransferRumours)
+            {
+                foreach(var post in transferRumour.Posts)
+                {
+                    post.TransferRumourId = null;
+                }
+            }
+            _context.TransferRumours.RemoveRange(player.TransferRumours);
+
             _context.Players.Remove(player);
             await _context.SaveChangesAsync();
         }

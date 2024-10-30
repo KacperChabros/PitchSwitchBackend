@@ -25,5 +25,7 @@ namespace PitchSwitchBackend.Models
         public Club? SellingClub { get; set; }
         public int? BuyingClubId { get; set; }
         public Club? BuyingClub { get; set; }
+
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }

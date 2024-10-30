@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PitchSwitchBackend.Data;
 
@@ -11,9 +12,11 @@ using PitchSwitchBackend.Data;
 namespace PitchSwitchBackend.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241028180025_Add_Posts")]
+    partial class Add_Posts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -503,10 +506,6 @@ namespace PitchSwitchBackend.Migrations
                     b.Property<int>("ConfidenceLevel")
                         .HasColumnType("int");
 
-                    b.Property<string>("CreatedByUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
@@ -529,8 +528,6 @@ namespace PitchSwitchBackend.Migrations
                     b.HasKey("TransferRumourId");
 
                     b.HasIndex("BuyingClubId");
-
-                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("PlayerId");
 
@@ -678,12 +675,6 @@ namespace PitchSwitchBackend.Migrations
                         .HasForeignKey("BuyingClubId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("PitchSwitchBackend.Models.AppUser", "CreatedByUser")
-                        .WithMany("TransferRumours")
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PitchSwitchBackend.Models.Player", "Player")
                         .WithMany("TransferRumours")
                         .HasForeignKey("PlayerId")
@@ -697,8 +688,6 @@ namespace PitchSwitchBackend.Migrations
 
                     b.Navigation("BuyingClub");
 
-                    b.Navigation("CreatedByUser");
-
                     b.Navigation("Player");
 
                     b.Navigation("SellingClub");
@@ -707,8 +696,6 @@ namespace PitchSwitchBackend.Migrations
             modelBuilder.Entity("PitchSwitchBackend.Models.AppUser", b =>
                 {
                     b.Navigation("Posts");
-
-                    b.Navigation("TransferRumours");
                 });
 
             modelBuilder.Entity("PitchSwitchBackend.Models.Club", b =>

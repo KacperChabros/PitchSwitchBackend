@@ -4,7 +4,7 @@ using PitchSwitchBackend.Enums;
 
 namespace PitchSwitchBackend.Dtos.Transfer.Responses
 {
-    public class NewTransferDto
+    public class MinimalTransferDto
     {
         public int TransferId { get; set; }
         public TransferType TransferType { get; set; }

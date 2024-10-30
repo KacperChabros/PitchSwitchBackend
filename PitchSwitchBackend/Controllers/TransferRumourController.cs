@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.TransferRumour.Requests;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Services.TransferRumourService;
+using System.Security.Claims;
 
 namespace PitchSwitchBackend.Controllers
 {
@@ -24,8 +25,13 @@ namespace PitchSwitchBackend.Controllers
             {
                 return BadRequest(ModelState);
             }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
 
-            var newTransferRumour = await _transferRumourService.AddTransferRumour(addTransferRumourDto);
+            var newTransferRumour = await _transferRumourService.AddTransferRumour(addTransferRumourDto, userId);
 
             if (newTransferRumour == null)
             {
@@ -81,11 +87,20 @@ namespace PitchSwitchBackend.Controllers
             {
                 return BadRequest(ModelState);
             }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
 
             var transferRumour = await _transferRumourService.GetTransferRumourById(transferRumourId);
             if (transferRumour == null)
             {
                 return NotFound("There is no such transfer rumour");
+            }
+            if (!transferRumour.CreatedByUserId.Equals(userId) && !User.IsInRole("Admin"))
+            {
+                return Forbid();
             }
 
             var updatedTransferRumour = await _transferRumourService.UpdateTransferRumour(transferRumour, updateTransferRumourDto);
@@ -94,16 +109,30 @@ namespace PitchSwitchBackend.Controllers
         }
 
 
-        [HttpPut("arcgivetransferrumour/{transferRumourId:int}")]
+        [HttpPut("archivetransferrumour/{transferRumourId:int}")]
         [Authorize(Roles = "Admin, Journalist")]
-        public async Task<IActionResult> ArchiveTransferRumour([FromRoute] int transferRumourId, [FromQuery] bool isConfirmed=false)
+        public async Task<IActionResult> ArchiveTransferRumour([FromRoute] int transferRumourId, [FromQuery] bool isConfirmed = false)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            var transferRumour = await _transferRumourService.GetTransferRumourById(transferRumourId);
+            if (transferRumour == null)
+            {
+                return NotFound("There is no such transfer rumour");
+            }
 
-            var result = await _transferRumourService.ArchiveTransferRumour(transferRumourId, isConfirmed);
+            if (!transferRumour.CreatedByUserId.Equals(userId) && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+            var result = await _transferRumourService.ArchiveTransferRumour(transferRumour, isConfirmed);
 
             if (!result)
             {
@@ -111,6 +140,37 @@ namespace PitchSwitchBackend.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpDelete("deletetransferrumour/{transferRumourId:int}")]
+        [Authorize(Roles = "Admin, Journalist")]
+        public async Task<IActionResult> DeleteTransferRumour([FromRoute] int transferRumourId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var transferRumour = await _transferRumourService.GetTransferRumourWithDataById(transferRumourId);
+
+            if (transferRumour == null)
+            {
+                return NotFound("There is no such transfer rumour");
+            }
+
+            if (!transferRumour.CreatedByUserId.Equals(userId) && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            await _transferRumourService.DeleteTransferRumour(transferRumour);
+
+            return NoContent();
         }
     }
 }

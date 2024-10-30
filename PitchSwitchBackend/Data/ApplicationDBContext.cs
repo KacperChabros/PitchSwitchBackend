@@ -17,6 +17,7 @@ namespace PitchSwitchBackend.Data
         public DbSet<Player> Players { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<TransferRumour> TransferRumours { get; set; }
+        public DbSet<Post> Posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -64,7 +65,7 @@ namespace PitchSwitchBackend.Data
 
             builder.Entity<Transfer>()
                 .HasOne(t => t.Player)
-                .WithMany()
+                .WithMany(t => t.Transfers)
                 .HasForeignKey(t => t.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -81,8 +82,14 @@ namespace PitchSwitchBackend.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<TransferRumour>()
+                .HasOne(tr => tr.CreatedByUser)
+                .WithMany(u => u.TransferRumours)
+                .HasForeignKey(tr => tr.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<TransferRumour>()
                 .HasOne(tr => tr.Player)
-                .WithMany()
+                .WithMany(p => p.TransferRumours)
                 .HasForeignKey(tr => tr.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -96,6 +103,24 @@ namespace PitchSwitchBackend.Data
                 .HasOne(tr => tr.BuyingClub)
                 .WithMany()
                 .HasForeignKey(tr => tr.BuyingClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Post>()
+                .HasOne(p => p.CreatedByUser)
+                .WithMany(u => u.Posts)
+                .HasForeignKey(p => p.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Post>()
+                .HasOne(p => p.Transfer)
+                .WithMany(t => t.Posts)
+                .HasForeignKey(p => p.TransferId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Post>()
+                .HasOne(p => p.TransferRumour)
+                .WithMany(tr => tr.Posts)
+                .HasForeignKey(p => p.TransferRumourId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
