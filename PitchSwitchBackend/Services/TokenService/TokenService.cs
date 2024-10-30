@@ -33,26 +33,13 @@ namespace PitchSwitchBackend.Services.TokenService
 
             var claims = new List<Claim>
             {
+                new Claim(JwtRegisteredClaimNames.NameId, appUser.Id),
                 new Claim(JwtRegisteredClaimNames.Email, appUser.Email),
                 new Claim(JwtRegisteredClaimNames.GivenName, appUser.UserName),
                 new Claim(JwtRegisteredClaimNames.Name, appUser.FirstName),
                 new Claim(JwtRegisteredClaimNames.FamilyName, appUser.LastName),
             };
 
-            if (appUser.FavouriteClubId != null)
-            {
-                claims.Add(new Claim("FavouriteClubId", appUser.FavouriteClubId.ToString()));
-            }
-
-            if (!string.IsNullOrWhiteSpace(appUser.ProfilePictureUrl))
-            {
-                claims.Add(new Claim("ProfilePictureUrl", appUser.ProfilePictureUrl));
-            }
-
-            if (!string.IsNullOrWhiteSpace(appUser.Bio))
-            {
-                claims.Add(new Claim("Bio", appUser.Bio));
-            }
 
             foreach (var role in roles)
             {

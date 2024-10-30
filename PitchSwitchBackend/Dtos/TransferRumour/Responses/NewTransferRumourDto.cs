@@ -1,4 +1,5 @@
-﻿using PitchSwitchBackend.Dtos.Club.Responses;
+﻿using PitchSwitchBackend.Dtos.Account.Responses;
+using PitchSwitchBackend.Dtos.Club.Responses;
 using PitchSwitchBackend.Dtos.Player.Responses;
 using PitchSwitchBackend.Enums;
 
@@ -12,8 +13,9 @@ namespace PitchSwitchBackend.Dtos.TransferRumour.Responses
         public int ConfidenceLevel { get; set; }
         public bool IsConfirmed { get; set; }
         public bool IsArchived { get; set; }
-        public PlayerDto Player { get; set; }
-        public ClubDto? SellingClub { get; set; }
-        public ClubDto? BuyingClub { get; set; }
+        public MinimalUserDto CreatedByUser { get; set; }
+        public MinimalPlayerDto Player { get; set; }
+        public MinimalClubDto? SellingClub { get; set; }
+        public MinimalClubDto? BuyingClub { get; set; }
     }
 }

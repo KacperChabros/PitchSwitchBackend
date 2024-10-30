@@ -12,5 +12,6 @@ namespace PitchSwitchBackend.Services.TransferService
         Task<Transfer?> GetTransferWithDataById(int transferId);
         Task<TransferDto?> UpdateTransfer(Transfer transfer, UpdateTransferDto updateTransferDto);
         Task DeleteTransfer(Transfer transfer);
+        Task<bool> TransferExists(int transferId);
     }
 }

@@ -39,5 +39,7 @@ namespace PitchSwitchBackend.Models
         public string? PhotoUrl { get; set; }
         public int? ClubId { get; set; }
         public Club? Club { get; set; }
+        public virtual ICollection<Transfer> Transfers { get; set; } = new List<Transfer>();
+        public virtual ICollection<TransferRumour> TransferRumours  { get; set; } = new List<TransferRumour>();
     }
 }

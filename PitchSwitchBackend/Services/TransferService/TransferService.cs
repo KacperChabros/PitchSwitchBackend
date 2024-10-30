@@ -28,8 +28,9 @@ namespace PitchSwitchBackend.Services.TransferService
         public async Task<NewTransferDto?> AddTransfer(AddTransferDto addTransferDto)
         {
             await ValidateExistenceOfData(addTransferDto.PlayerId, addTransferDto.SellingClubId, addTransferDto.BuyingClubId);
-            ValidateNewTransferData(addTransferDto.SellingClubId, addTransferDto.BuyingClubId);
+            await ValidateNewTransferData(addTransferDto.PlayerId, addTransferDto.SellingClubId, addTransferDto.BuyingClubId, addTransferDto.TransferDate);
 
+            var mapp = addTransferDto.FromAddTransferDtoToModel();
             var result = await _context.Transfers.AddAsync(addTransferDto.FromAddTransferDtoToModel());
             await _context.SaveChangesAsync();
             var transfer = result.Entity;
@@ -74,7 +75,9 @@ namespace PitchSwitchBackend.Services.TransferService
 
         public async Task<Transfer?> GetTransferWithDataById(int transferId)
         {
-            return await _context.Transfers.Include(t => t.Player).Include(t => t.SellingClub).Include(t => t.BuyingClub)
+            return await _context.Transfers.Include(t => t.Player).ThenInclude(p => p.Club)
+                .Include(t => t.SellingClub).Include(t => t.BuyingClub)
+                .Include(t => t.Posts)
                 .FirstOrDefaultAsync(t => t.TransferId == transferId);
         }
 
@@ -86,7 +89,7 @@ namespace PitchSwitchBackend.Services.TransferService
         public async Task<TransferDto?> UpdateTransfer(Transfer transfer, UpdateTransferDto updateTransferDto)
         {
             await ValidateExistenceOfData(updateTransferDto.PlayerId, updateTransferDto.SellingClubId, updateTransferDto.BuyingClubId);
-            ValidateUpdateTransferData(transfer, updateTransferDto);
+            await ValidateUpdateTransferData(transfer, updateTransferDto);
 
             if (updateTransferDto.TransferType.HasValue)
                 transfer.TransferType = updateTransferDto.TransferType.Value;
@@ -119,16 +122,24 @@ namespace PitchSwitchBackend.Services.TransferService
 
             await _context.SaveChangesAsync();
 
-            await _context.Entry(transfer).Reference(t => t.Player).LoadAsync();
-            await _context.Entry(transfer).Reference(t => t.SellingClub).LoadAsync();
-            await _context.Entry(transfer).Reference(t => t.BuyingClub).LoadAsync();
+            var updatedTransfer = await GetTransferWithDataById(transfer.TransferId);
 
-            return transfer.FromModelToTransferDto();
+            return updatedTransfer?.FromModelToTransferDto();
         }
         public async Task DeleteTransfer(Transfer transfer)
         {
+            foreach (var post in transfer.Posts)
+            {
+                post.TransferId = null;
+            }
+
             _context.Transfers.Remove(transfer);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> TransferExists(int transferId)
+        {
+            return await _context.Transfers.AnyAsync(t => t.TransferId == transferId);
         }
 
         private async Task ValidateExistenceOfData(int? playerId, int? sellingClubId, int? buyingClubId)
@@ -143,7 +154,7 @@ namespace PitchSwitchBackend.Services.TransferService
             }
         }
 
-        private void ValidateNewTransferData(int? sellingClubId, int? buyingClubId)
+        private async Task ValidateNewTransferData(int playerId, int? sellingClubId, int? buyingClubId, DateTime? transferDate)
         {
             if (sellingClubId.HasValue && buyingClubId.HasValue &&
                 sellingClubId == buyingClubId)
@@ -154,12 +165,20 @@ namespace PitchSwitchBackend.Services.TransferService
             {
                 throw new ArgumentException("Both clubs cannot be null");
             }
+            
+            if(transferDate.HasValue && transferDate.Value.Date == DateTime.Today)
+            {
+                if (await _playerService.GetPlayerClubIdById(playerId) != sellingClubId)
+                    throw new ArgumentException("Selling club cannot be different than player's club when the transfer date is today");
+            }
         }
 
-        private void ValidateUpdateTransferData(Transfer transfer, UpdateTransferDto updateTransferDto)
+        private async Task ValidateUpdateTransferData(Transfer transfer, UpdateTransferDto updateTransferDto)
         {
             int? newSellingClubId = updateTransferDto.IsSellingClubDeleted ? null : updateTransferDto.SellingClubId ?? transfer.SellingClubId;
             int? newBuyingClubId = updateTransferDto.IsBuyingClubDeleted ? null : updateTransferDto.BuyingClubId ?? transfer.BuyingClubId;
+            var newTransferDat = updateTransferDto.TransferDate ?? transfer.TransferDate;
+            var newPlayerId = updateTransferDto.PlayerId ?? transfer.PlayerId;
 
             if (newSellingClubId == null && newBuyingClubId == null)
             {
@@ -169,6 +188,12 @@ namespace PitchSwitchBackend.Services.TransferService
             if (newSellingClubId.HasValue && newBuyingClubId.HasValue && newSellingClubId == newBuyingClubId)
             {
                 throw new ArgumentException("SellingClub and BuyingClub cannot have the same value.");
+            }
+
+            if(newTransferDat.Date == DateTime.Today)
+            {
+                if (newSellingClubId != await _playerService.GetPlayerClubIdById(newPlayerId))
+                    throw new ArgumentException("SellingClubId cannot be different from player's club for transfers made today");
             }
         }
 
@@ -190,11 +215,11 @@ namespace PitchSwitchBackend.Services.TransferService
             {
                 transfers = transferQuery.TransferDateComparison switch
                 {
-                    NumberComparisonTypes.Equal => transfers.Where(t => t.TransferDate == transferQuery.TransferDate),
-                    NumberComparisonTypes.Less => transfers.Where(t => t.TransferDate < transferQuery.TransferDate),
-                    NumberComparisonTypes.LessEqual => transfers.Where(t => t.TransferDate <= transferQuery.TransferDate),
-                    NumberComparisonTypes.Greater => transfers.Where(t => t.TransferDate > transferQuery.TransferDate),
-                    NumberComparisonTypes.GreaterEqual => transfers.Where(t => t.TransferDate >= transferQuery.TransferDate),
+                    NumberComparisonTypes.Equal => transfers.Where(t => t.TransferDate.Date == transferQuery.TransferDate.Value.Date),
+                    NumberComparisonTypes.Less => transfers.Where(t => t.TransferDate.Date < transferQuery.TransferDate.Value.Date),
+                    NumberComparisonTypes.LessEqual => transfers.Where(t => t.TransferDate.Date <= transferQuery.TransferDate.Value.Date),
+                    NumberComparisonTypes.Greater => transfers.Where(t => t.TransferDate.Date > transferQuery.TransferDate.Value.Date),
+                    NumberComparisonTypes.GreaterEqual => transfers.Where(t => t.TransferDate.Date >= transferQuery.TransferDate.Value.Date),
                     _ => transfers
                 };
             }

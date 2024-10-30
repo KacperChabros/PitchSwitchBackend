@@ -5,7 +5,7 @@ using PitchSwitchBackend.Enums;
 
 namespace PitchSwitchBackend.Dtos.TransferRumour.Responses
 {
-    public class TransferRumourDto
+    public class MinimalTransferRumourDto
     {
         public int TransferRumourId { get; set; }
         public TransferType TransferType { get; set; }

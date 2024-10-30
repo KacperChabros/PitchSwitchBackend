@@ -16,6 +16,6 @@ namespace PitchSwitchBackend.Dtos.Player.Responses
         public Foot PreferredFoot { get; set; }
         public decimal MarketValue { get; set; }
         public string? PhotoUrl { get; set; }
-        public ClubDto? Club { get; set; }
+        public MinimalClubDto? Club { get; set; }
     }
 }

@@ -21,6 +21,9 @@ namespace PitchSwitchBackend.Models
         public bool IsConfirmed { get; set; } = false;
         public bool IsArchived { get; set; } = false;
         [Required]
+        public string CreatedByUserId { get; set; }
+        public AppUser CreatedByUser { get; set; }
+        [Required]
         public int PlayerId { get; set; }
         [Required]
         public Player Player { get; set; }
@@ -28,5 +31,6 @@ namespace PitchSwitchBackend.Models
         public Club? SellingClub { get; set; }
         public int? BuyingClubId { get; set; }
         public Club? BuyingClub { get; set; }
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }

@@ -38,7 +38,7 @@ namespace PitchSwitchBackend.Services.AuthService
                 throw new ArgumentException("Given club does not exist");
             }
 
-            var appUser = registerDto.ToAppUserFromRegisterDto();
+            var appUser = registerDto.FromRegisterDtoToModel();
 
             var createdUserResult = await _userManager.CreateAsync(appUser, registerDto.Password);
 
@@ -54,7 +54,7 @@ namespace PitchSwitchBackend.Services.AuthService
                         appUser.FavouriteClub = await _clubService.GetClubById((int)appUser.FavouriteClubId);
                     }
 
-                    return IdentityResultDto<NewUserDto>.Succeeded(appUser.ToNewUserDtoFromModel(accessToken, refreshToken));
+                    return IdentityResultDto<NewUserDto>.Succeeded(appUser.FromModelToNewUserDto(accessToken, refreshToken));
                 }
                 else
                 {
@@ -85,7 +85,7 @@ namespace PitchSwitchBackend.Services.AuthService
             var accessToken = await _tokenService.CreateAccessToken(user);
             var refreshToken = await _tokenService.CreateRefreshToken(user);
 
-            return ResultDto<NewUserDto>.Succeeded(user.ToNewUserDtoFromModel(accessToken, refreshToken));
+            return ResultDto<NewUserDto>.Succeeded(user.FromModelToNewUserDto(accessToken, refreshToken));
         }
 
         public async Task<ResultDto<TokensDto>> RefreshToken(RefreshTokenRequestDto refreshTokenRequestDto)
@@ -159,7 +159,7 @@ namespace PitchSwitchBackend.Services.AuthService
                     appUser.FavouriteClub = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
                 }
 
-                return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.ToUpdateUserDataDtoFromModel());
+                return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.FromModelToUpdateUserDataDto());
             }
 
             return IdentityResultDto<UpdateUserDataResultDto>.Failed(result.Errors);

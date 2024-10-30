@@ -54,5 +54,16 @@ namespace PitchSwitchBackend.Mappers
                 IsArchived = club.IsArchived
             };
         }
+
+        public static MinimalClubDto FromModelToMinimalClubDto(this Club club)
+        {
+            return new MinimalClubDto
+            {
+                ClubId = club.ClubId,
+                Name = club.Name,
+                ShortName = club.ShortName,
+                LogoUrl = club.LogoUrl,
+            };
+        }
     }
 }

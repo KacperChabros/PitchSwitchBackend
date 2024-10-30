@@ -26,9 +26,10 @@ namespace PitchSwitchBackend.Mappers
                 TransferType = transferRumour.TransferType,
                 RumouredFee = transferRumour.RumouredFee,
                 ConfidenceLevel = transferRumour.ConfidenceLevel,
-                Player = transferRumour.Player.FromModelToPlayerDto(),
-                SellingClub = transferRumour.SellingClub?.FromModelToClubDto(),
-                BuyingClub = transferRumour.BuyingClub?.FromModelToClubDto(),
+                CreatedByUser = transferRumour.CreatedByUser.FromModelToMinimalUserDto(),
+                Player = transferRumour.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transferRumour.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transferRumour.BuyingClub?.FromModelToMinimalClubDto(),
                 IsConfirmed = transferRumour.IsConfirmed,
                 IsArchived = transferRumour.IsArchived
             };
@@ -42,11 +43,29 @@ namespace PitchSwitchBackend.Mappers
                 TransferType = transferRumour.TransferType,
                 RumouredFee = transferRumour.RumouredFee,
                 ConfidenceLevel = transferRumour.ConfidenceLevel,
-                Player = transferRumour.Player.FromModelToPlayerDto(),
-                SellingClub = transferRumour.SellingClub?.FromModelToClubDto(),
-                BuyingClub = transferRumour.BuyingClub?.FromModelToClubDto(),
+                CreatedByUser = transferRumour.CreatedByUser.FromModelToMinimalUserDto(),
+                Player = transferRumour.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transferRumour.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transferRumour.BuyingClub?.FromModelToMinimalClubDto(),
                 IsConfirmed = transferRumour.IsConfirmed,
                 IsArchived = transferRumour.IsArchived
+            };
+        }
+
+        public static MinimalTransferRumourDto FromModelToMinimalTransferRumourDto(this TransferRumour transferRumour)
+        {
+            return new MinimalTransferRumourDto
+            {
+                TransferRumourId = transferRumour.TransferRumourId,
+                TransferType = transferRumour.TransferType,
+                RumouredFee = transferRumour.RumouredFee,
+                ConfidenceLevel = transferRumour.ConfidenceLevel,
+                IsConfirmed = transferRumour.IsConfirmed,
+                IsArchived = transferRumour.IsArchived,
+                CreatedByUser = transferRumour.CreatedByUser.FromModelToMinimalUserDto(),
+                Player = transferRumour.Player.FromModelToMinimalPlayerDto(),
+                SellingClub = transferRumour.SellingClub?.FromModelToMinimalClubDto(),
+                BuyingClub = transferRumour.BuyingClub?.FromModelToMinimalClubDto(),
             };
         }
     }

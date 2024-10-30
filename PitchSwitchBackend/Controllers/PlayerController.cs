@@ -103,7 +103,7 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var player = await _playerService.GetPlayerById(playerId);
+            var player = await _playerService.GetPlayerByIdWithAllData(playerId);
 
             if (player == null)
             {

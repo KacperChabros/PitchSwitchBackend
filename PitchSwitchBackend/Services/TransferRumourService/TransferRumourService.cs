@@ -24,7 +24,7 @@ namespace PitchSwitchBackend.Services.TransferRumourService
             _playerService = playerService;
         }
 
-        public async Task<NewTransferRumourDto?> AddTransferRumour(AddTransferRumourDto addTransferRumourDto)
+        public async Task<NewTransferRumourDto?> AddTransferRumour(AddTransferRumourDto addTransferRumourDto, string userId)
         {
             await ValidateExistenceOfData(addTransferRumourDto.PlayerId, addTransferRumourDto.BuyingClubId);
             
@@ -34,25 +34,13 @@ namespace PitchSwitchBackend.Services.TransferRumourService
 
             var transferRumourModel = addTransferRumourDto.FromAddTransferRumourDtoToModel();
             transferRumourModel.SellingClubId = player?.ClubId;
+            transferRumourModel.CreatedByUserId = userId;
 
             var result = await _context.TransferRumours.AddAsync(transferRumourModel);
             await _context.SaveChangesAsync();
-            var transferRumour = result.Entity;
 
-            if (transferRumour != null)
-            {
-                if (transferRumour.SellingClubId.HasValue)
-                {
-                    transferRumour.SellingClub = player?.Club;
-                }
-                if (transferRumour.BuyingClubId.HasValue)
-                {
-                    transferRumour.BuyingClub = await _clubService.GetClubById(transferRumour.BuyingClubId.GetValueOrDefault());
-                }
-                transferRumour.Player = player;
-            }
-
-            return transferRumour?.FromModelToNewTransferRumourDto();
+            var addedTransferRumour = await GetTransferRumourWithDataById(result.Entity.TransferRumourId);
+            return addedTransferRumour?.FromModelToNewTransferRumourDto();
         }
 
         public async Task<List<TransferRumourDto>> GetTransferRumours(TransferRumourQueryObject transferRumourQuery)
@@ -66,6 +54,7 @@ namespace PitchSwitchBackend.Services.TransferRumourService
             var skipNumber = (transferRumourQuery.PageNumber - 1) * transferRumourQuery.PageSize;
 
             var filteredTransfers = await transferRumours.Skip(skipNumber).Take(transferRumourQuery.PageSize)
+                .Include(tr => tr.CreatedByUser)
                 .Include(tr => tr.Player).Include(tr => tr.SellingClub).Include(tr => tr.BuyingClub).ToListAsync();
 
             return filteredTransfers.Select(tr => tr.FromModelToTransferRumourDto()).ToList();
@@ -79,7 +68,11 @@ namespace PitchSwitchBackend.Services.TransferRumourService
         public async Task<TransferRumour?> GetTransferRumourWithDataById(int transferRumourId)
         {
             return await _context.TransferRumours
-                .Include(tr => tr.Player).Include(tr => tr.SellingClub).Include(tr => tr.BuyingClub).FirstOrDefaultAsync(tr => tr.TransferRumourId == transferRumourId);
+                .Include(tr => tr.CreatedByUser)
+                .Include(tr => tr.Player).ThenInclude(p => p.Club)
+                .Include(tr => tr.SellingClub).Include(t => t.BuyingClub)
+                .Include(tr => tr.Posts)
+                .FirstOrDefaultAsync(tr => tr.TransferRumourId == transferRumourId);
         }
 
         public async Task<TransferRumourDto?> UpdateTransferRumour(TransferRumour transferRumour, UpdateTransferRumourDto updateTransferRumourDto)
@@ -112,18 +105,24 @@ namespace PitchSwitchBackend.Services.TransferRumourService
                 
             await _context.SaveChangesAsync();
 
-            await _context.Entry(transferRumour).Reference(tr => tr.Player).LoadAsync();
-            await _context.Entry(transferRumour).Reference(tr => tr.SellingClub).LoadAsync();
-            await _context.Entry(transferRumour).Reference(tr => tr.BuyingClub).LoadAsync();
+            var updatedTransferRumour = await GetTransferRumourWithDataById(transferRumour.TransferRumourId);
 
-            return transferRumour.FromModelToTransferRumourDto();
+            return updatedTransferRumour?.FromModelToTransferRumourDto();
         }
 
-        public async Task<bool> ArchiveTransferRumour(int transferRumourId, bool isConfirmed)
+        public async Task DeleteTransferRumour(TransferRumour transferRumour)
         {
-            var transferRumour = await _context.TransferRumours
-                .FirstOrDefaultAsync(tr => tr.TransferRumourId == transferRumourId);
+            foreach (var post in transferRumour.Posts)
+            {
+                post.TransferRumourId = null;
+            }
 
+            _context.TransferRumours.Remove(transferRumour);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ArchiveTransferRumour(TransferRumour transferRumour, bool isConfirmed)
+        {
             if (transferRumour == null)
                 return false;
 
@@ -133,6 +132,12 @@ namespace PitchSwitchBackend.Services.TransferRumourService
 
             return true;
         }
+
+        public async Task<bool> TransferRumourExists(int transferRumourId)
+        {
+            return await _context.TransferRumours.AnyAsync(tr => tr.TransferRumourId == transferRumourId);
+        }
+
 
         private async Task ValidateExistenceOfData(int? playerId, int? buyingClubId)
         {
