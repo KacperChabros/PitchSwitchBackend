@@ -1,21 +1,18 @@
 ﻿using PitchSwitchBackend.Helpers;
 using System.ComponentModel.DataAnnotations;
 
-namespace PitchSwitchBackend.Dtos.Post.Requests
+namespace PitchSwitchBackend.Dtos.Comment.Requests
 {
-    public class PostQueryObject
+    public class CommentQueryObject
     {
-        [StringLength(100)]
-        public string? Title { get; set; } = null;
-        [StringLength(500)]
+        [StringLength(300, MinimumLength = 3)]
         public string? Content { get; set; } = null;
         public DateTime? CreatedOn { get; set; } = null;
         [StringLength(2, MinimumLength = 2)]
         public string CreatedOnComparison { get; set; } = NumberComparisonTypes.Equal;
-        [StringLength(450)]
+        public bool? IsEdited { get; set; } = null;
         public string? CreatedByUserId { get; set; } = null;
-        public int? TransferId { get; set; } = null;
-        public int? TransferRumourId { get; set; } = null;
+        public int? PostId { get; set; } = null;
         [StringLength(50)]
         public string? SortBy { get; set; } = null;
         public bool IsDescending { get; set; } = false;

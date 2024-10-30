@@ -31,7 +31,8 @@ namespace PitchSwitchBackend.Mappers
                 CreatedOn = post.CreatedOn,
                 CreatedByUser = post.CreatedByUser.FromModelToMinimalUserDto(),
                 Transfer = post.Transfer?.FromModelToMinimalTransferDto(),
-                TransferRumour = post.TransferRumour?.FromModelToMinimalTransferRumourDto()
+                TransferRumour = post.TransferRumour?.FromModelToMinimalTransferRumourDto(),
+                Comments = post.Comments.Select(c => c.FromModelToMinimalCommentDto()).ToList()
             };
         }
 
@@ -44,6 +45,31 @@ namespace PitchSwitchBackend.Mappers
                 ImageUrl = addPostDto.ImageUrl,
                 TransferId = addPostDto.TransferId,
                 TransferRumourId = addPostDto.TransferRumourId
+            };
+        }
+
+        public static MinimalPostDto FromModelToMinimalPostDto(this Post post)
+        {
+            return new MinimalPostDto
+            {
+                PostId = post.PostId,
+                Title = post.Title,
+                CreatedByUser = post.CreatedByUser.FromModelToMinimalUserDto()
+            };
+        }
+
+        public static ListElementPostDto FromModelToListElementPostDto(this Post post)
+        {
+            return new ListElementPostDto
+            {
+                PostId = post.PostId,
+                Title = post.Title,
+                Content = post.Content,
+                ImageUrl = post.ImageUrl,
+                CreatedOn = post.CreatedOn,
+                CreatedByUser = post.CreatedByUser.FromModelToMinimalUserDto(),
+                Transfer = post.Transfer?.FromModelToMinimalTransferDto(),
+                TransferRumour = post.TransferRumour?.FromModelToMinimalTransferRumourDto()
             };
         }
     }

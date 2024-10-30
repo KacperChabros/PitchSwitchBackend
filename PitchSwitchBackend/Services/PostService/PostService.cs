@@ -24,6 +24,11 @@ namespace PitchSwitchBackend.Services.PostService
             _transferRumourService = transferRumourService;
         }
 
+        public async Task<bool> PostExists(int postId)
+        {
+            return await _context.Posts.AnyAsync(p => p.PostId == postId);
+        }
+
         public async Task<NewPostDto?> AddPost(AddPostDto addPostDto, string userId)
         {
             await ValidateAddPostData(addPostDto);
@@ -45,7 +50,7 @@ namespace PitchSwitchBackend.Services.PostService
             return result.Entity?.FromModelToNewPostDto();
         }
 
-        public async Task<List<PostDto>> GetAllPosts(PostQueryObject postQuery)
+        public async Task<List<ListElementPostDto>> GetAllPosts(PostQueryObject postQuery)
         {
             var posts = _context.Posts.AsQueryable();
 
@@ -59,7 +64,7 @@ namespace PitchSwitchBackend.Services.PostService
 
             var filteredPosts = await posts.Skip(skipNumber).Take(postQuery.PageSize).ToListAsync();
 
-            return filteredPosts.Select(p => p.FromModelToPostDto()).ToList();
+            return filteredPosts.Select(p => p.FromModelToListElementPostDto()).ToList();
         }
 
         public async Task<Post?> GetPostById(int postId)
@@ -77,6 +82,7 @@ namespace PitchSwitchBackend.Services.PostService
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.Player)
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.SellingClub)
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.BuyingClub)
+                .Include(p => p.Comments).ThenInclude(c => c.CreatedByUser)
                 .FirstOrDefaultAsync();
         }
 
@@ -116,7 +122,8 @@ namespace PitchSwitchBackend.Services.PostService
 
         public async Task DeletePost(Post post)
         {
-            //remove comments
+            var comments = post.Comments;
+            _context.Comments.RemoveRange(comments);
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
         }
@@ -222,7 +229,7 @@ namespace PitchSwitchBackend.Services.PostService
                 .Include(p => p.TransferRumour)
                     .ThenInclude(t => t.SellingClub)
                 .Include(p => p.TransferRumour)
-                    .ThenInclude(t => t.BuyingClub);
+                    .ThenInclude(tr => tr.BuyingClub);
             return posts;
         }
     }

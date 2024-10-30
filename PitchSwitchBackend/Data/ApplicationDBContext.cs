@@ -18,6 +18,7 @@ namespace PitchSwitchBackend.Data
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<TransferRumour> TransferRumours { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -121,6 +122,18 @@ namespace PitchSwitchBackend.Data
                 .HasOne(p => p.TransferRumour)
                 .WithMany(tr => tr.Posts)
                 .HasForeignKey(p => p.TransferRumourId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Comment>()
+                .HasOne(c => c.CreatedByUser)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Comment>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

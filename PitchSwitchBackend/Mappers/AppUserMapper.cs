@@ -6,17 +6,18 @@ namespace PitchSwitchBackend.Mappers
 {
     public static class AppUserMapper
     {
-        public static NewUserDto FromModelToNewUserDto(this AppUser model, string accessToken, string refreshToken)
+        public static NewUserDto FromModelToNewUserDto(this AppUser appUser, string accessToken, string refreshToken)
         {
             return new NewUserDto
             {
-                UserName = model.UserName,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                FavouriteClub = model.FavouriteClub?.FromModelToMinimalClubDto(),
-                Bio = model.Bio,
-                ProfilePictureUrl = model.ProfilePictureUrl,
+                UserId = appUser.Id,
+                UserName = appUser.UserName,
+                Email = appUser.Email,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
+                Bio = appUser.Bio,
+                ProfilePictureUrl = appUser.ProfilePictureUrl,
                 Tokens = new TokensDto
                 {
                     AccessToken = accessToken,
@@ -43,6 +44,7 @@ namespace PitchSwitchBackend.Mappers
         {
             return new UpdateUserDataResultDto
             {
+                UserId = appUser.Id,
                 UserName = appUser.UserName,
                 Email = appUser.Email,
                 FirstName = appUser.FirstName,
@@ -57,6 +59,7 @@ namespace PitchSwitchBackend.Mappers
         {
             return new UserDto
             {
+                UserId = appUser.Id,
                 UserName = appUser.UserName,
                 Email = appUser.Email,
                 FirstName = appUser.FirstName,
