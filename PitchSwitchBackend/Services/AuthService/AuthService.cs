@@ -191,6 +191,18 @@ namespace PitchSwitchBackend.Services.AuthService
             return IdentityResultDto<string>.Failed(result.Errors);
         }
 
+        public async Task AddUserToRole(AppUser appUser, string role)
+        {
+            string[] validRoles = { "User", "Journalist", "Admin" };
+            if (string.IsNullOrWhiteSpace(role) || !validRoles.Contains(role))
+                throw new ArgumentException("Invalid Role");
+            var roleResult = await _userManager.AddToRoleAsync(appUser, role);
+            if (!roleResult.Succeeded)
+            {
+                throw new InvalidOperationException(roleResult.Errors.ToString());
+            }
+        }
+
         private async Task<bool> ValidateClubExists(int? clubId)
         {
             return clubId == null || await _clubService.ClubExistsAndNotArchived(clubId.Value);

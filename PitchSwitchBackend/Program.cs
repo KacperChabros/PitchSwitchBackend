@@ -14,6 +14,7 @@ using PitchSwitchBackend.Services.CommentService;
 using PitchSwitchBackend.Services.DeleteExpiredTokensJob;
 using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.JobExecutor;
+using PitchSwitchBackend.Services.JournalistStatusApplicationService;
 using PitchSwitchBackend.Services.PlayerService;
 using PitchSwitchBackend.Services.PostService;
 using PitchSwitchBackend.Services.TokenService;
@@ -123,6 +124,7 @@ namespace PitchSwitchBackend
             builder.Services.AddScoped<ITransferRumourService, TransferRumourService>();
             builder.Services.AddScoped<IPostService, PostService>();
             builder.Services.AddScoped<ICommentService, CommentService>();
+            builder.Services.AddScoped<IJournalistStatusApplicationService, JournalistStatusApplicationService>();
             builder.Services.AddSingleton<IJobExecutor, JobExecutor>();
 
             var app = builder.Build();
