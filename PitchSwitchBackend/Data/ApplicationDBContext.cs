@@ -19,6 +19,7 @@ namespace PitchSwitchBackend.Data
         public DbSet<TransferRumour> TransferRumours { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<JournalistStatusApplication> JournalistStatusApplications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -135,6 +136,12 @@ namespace PitchSwitchBackend.Data
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<JournalistStatusApplication>()
+                .HasOne(jsa => jsa.SubmittedByUser)
+                .WithMany(u => u.Applications)
+                .HasForeignKey(jsa => jsa.SubmittedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

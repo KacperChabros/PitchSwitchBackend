@@ -13,5 +13,6 @@ namespace PitchSwitchBackend.Services.AuthService
         Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUseDataDto);
         Task<IdentityResultDto<string>> ChangePassword(AppUser appUser, ChangePasswordDto changePasswordDto);
         Task<IdentityResultDto<string>> DeleteUser(AppUser appUser);
+        Task AddUserToRole(AppUser appUser, string role);
     }
 }

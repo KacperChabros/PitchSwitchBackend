@@ -32,5 +32,6 @@ namespace PitchSwitchBackend.Models
         public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
         public virtual ICollection<TransferRumour> TransferRumours { get; set; } = new List<TransferRumour>();
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public virtual ICollection<JournalistStatusApplication> Applications { get; set; }
     }
 }
