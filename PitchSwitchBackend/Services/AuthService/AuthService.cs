@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Dtos.Account.Requests;
 using PitchSwitchBackend.Dtos.Account.Responses;
+using PitchSwitchBackend.Helpers;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.ClubService;
+using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.TokenService;
 
 namespace PitchSwitchBackend.Services.AuthService
@@ -17,28 +19,34 @@ namespace PitchSwitchBackend.Services.AuthService
         private readonly ApplicationDBContext _context;
         private readonly ITokenService _tokenService;
         private readonly IClubService _clubService;
+        private readonly IImageService _imageService;
         public AuthService(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ApplicationDBContext context,
             ITokenService tokenService,
-            IClubService clubService)
+            IClubService clubService,
+            IImageService imageService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _tokenService = tokenService;
             _clubService = clubService;
+            _imageService = imageService;
         }
 
         public async Task<IdentityResultDto<NewUserDto>> RegisterUser(RegisterDto registerDto)
         {
-            if (!await ValidateClubExists(registerDto.FavouriteClubId))
-            {
-                throw new ArgumentException("Given club does not exist");
-            }
-
             var appUser = registerDto.FromRegisterDtoToModel();
+
+            if (registerDto.ProfilePicture != null)
+            {
+                var profilePictureUrl = await _imageService.UploadFileAsync(registerDto.ProfilePicture, UploadFolders.UsersDir);
+                if(!string.IsNullOrWhiteSpace(profilePictureUrl))
+                    appUser.ProfilePictureUrl = profilePictureUrl;
+            }
+                
 
             var createdUserResult = await _userManager.CreateAsync(appUser, registerDto.Password);
 

@@ -31,6 +31,14 @@ namespace PitchSwitchBackend
 
             // Add services to the container.
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowOrigin",
+                    builder => builder.WithOrigins("http://localhost:3000")
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader());
+            });
+
             builder.Services.AddControllers();
 
             builder.Services.AddHangfire(config =>
@@ -138,6 +146,7 @@ namespace PitchSwitchBackend
 
             app.UseHttpsRedirection();
 
+            app.UseCors("AllowOrigin");
             app.UseAuthentication();
             app.UseAuthorization();
 
