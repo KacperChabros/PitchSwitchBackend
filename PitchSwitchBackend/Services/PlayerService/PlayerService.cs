@@ -6,6 +6,7 @@ using PitchSwitchBackend.Helpers;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.ClubService;
+using PitchSwitchBackend.Services.ImageService;
 
 namespace PitchSwitchBackend.Services.PlayerService
 {
@@ -13,11 +14,14 @@ namespace PitchSwitchBackend.Services.PlayerService
     {
         private readonly ApplicationDBContext _context;
         private readonly IClubService _clubService;
+        private readonly IImageService _imageService;
         public PlayerService(ApplicationDBContext context,
-            IClubService clubService)
+            IClubService clubService,
+            IImageService imageService)
         {
             _context = context;
             _clubService = clubService;
+            _imageService = imageService;
         }
 
         public async Task<NewPlayerDto?> AddPlayer(AddPlayerDto addPlayerDto)

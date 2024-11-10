@@ -17,6 +17,7 @@ namespace PitchSwitchBackend.Mappers
                 LastName = appUser.LastName,
                 FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
                 Bio = appUser.Bio,
+                ProfilePictureUrl = appUser.ProfilePictureUrl,
                 Tokens = new TokensDto
                 {
                     AccessToken = accessToken,

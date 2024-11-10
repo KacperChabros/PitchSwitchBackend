@@ -6,15 +6,18 @@ using PitchSwitchBackend.Dtos.Club.Responses;
 using PitchSwitchBackend.Helpers;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
+using PitchSwitchBackend.Services.ImageService;
 
 namespace PitchSwitchBackend.Services.ClubService
 {
     public class ClubService : IClubService
     {
         private readonly ApplicationDBContext _context;
-        public ClubService(ApplicationDBContext context)
+        private readonly IImageService _imageService;
+        public ClubService(ApplicationDBContext context, IImageService imageService)
         {
             _context = context;
+            _imageService = imageService;
         }
 
         public async Task<bool> ClubExists(int clubId)
@@ -37,7 +40,9 @@ namespace PitchSwitchBackend.Services.ClubService
 
         public async Task<List<ClubDto>> GetAllClubs(ClubQueryObject clubQuery)
         {
-            var clubs = _context.Clubs.AsQueryable().Where(c => !c.IsArchived);
+            var clubs = _context.Clubs.AsQueryable();
+            if (clubQuery.IncludeArchived.HasValue && !clubQuery.IncludeArchived.Value)
+                clubs = clubs.Where(c => !c.IsArchived);
 
             clubs = FilterClubs(clubs, clubQuery);
 
@@ -57,6 +62,22 @@ namespace PitchSwitchBackend.Services.ClubService
 
         public async Task<ClubDto?> UpdateClub(Club club, UpdateClubDto updateClubDto)
         {
+            if(updateClubDto.Logo != null)
+            {
+                var oldLogoUrl = club.LogoUrl;
+                var newLogoUrl = await _imageService.UploadFileAsync(updateClubDto.Logo, UploadFolders.ClubsDir);
+                club.LogoUrl = newLogoUrl;
+                if(!string.IsNullOrEmpty(oldLogoUrl))
+                    _imageService.DeleteFile(oldLogoUrl);
+            }
+            else if(updateClubDto.IsLogoDeleted)
+            {
+                if (!string.IsNullOrEmpty(club.LogoUrl))
+                    _imageService.DeleteFile(club.LogoUrl);
+                club.LogoUrl = null;
+            }
+
+            
             if (!string.IsNullOrWhiteSpace(updateClubDto.Name))
                 club.Name = updateClubDto.Name;
 
@@ -77,11 +98,6 @@ namespace PitchSwitchBackend.Services.ClubService
 
             if (updateClubDto.FoundationYear != null)
                 club.FoundationYear = (int)updateClubDto.FoundationYear;
-
-            if (updateClubDto.IsLogoUrlDeleted)
-                club.LogoUrl = null;
-            else if (!string.IsNullOrWhiteSpace(updateClubDto.LogoUrl))
-                club.LogoUrl = updateClubDto.LogoUrl;
 
             await _context.SaveChangesAsync();
 
@@ -114,16 +130,16 @@ namespace PitchSwitchBackend.Services.ClubService
             return true;
         }
 
-        public async Task<bool> RestoreClub(int clubId)
+        public async Task<ClubDto?> RestoreClub(int clubId)
         {
             var club = await _context.Clubs.FirstOrDefaultAsync(c => c.ClubId == clubId);
             if (club == null)
-                return false;
+                return null;
 
             club.IsArchived = false;
             await _context.SaveChangesAsync();
 
-            return true;
+            return club.FromModelToClubDto();
         }
 
         private IQueryable<Club> FilterClubs(IQueryable<Club> clubs, ClubQueryObject clubQuery)
@@ -140,25 +156,6 @@ namespace PitchSwitchBackend.Services.ClubService
             if (!string.IsNullOrWhiteSpace(clubQuery.Country))
                 clubs = clubs.Where(c => c.Country.ToLower().Contains(clubQuery.Country.ToLower()));
 
-            if (!string.IsNullOrWhiteSpace(clubQuery.City))
-                clubs = clubs.Where(c => c.City.ToLower().Contains(clubQuery.City.ToLower()));
-
-            if (!string.IsNullOrWhiteSpace(clubQuery.Stadium))
-                clubs = clubs.Where(c => c.Stadium.ToLower().Contains(clubQuery.Stadium.ToLower()));
-
-            if (clubQuery.FoundationYear != null)
-            {
-                clubs = clubQuery.FoundationYearComparison switch
-                {
-                    NumberComparisonTypes.Equal => clubs.Where(c => c.FoundationYear == clubQuery.FoundationYear),
-                    NumberComparisonTypes.Less => clubs.Where(c => c.FoundationYear < clubQuery.FoundationYear),
-                    NumberComparisonTypes.LessEqual => clubs.Where(c => c.FoundationYear <= clubQuery.FoundationYear),
-                    NumberComparisonTypes.Greater => clubs.Where(c => c.FoundationYear > clubQuery.FoundationYear),
-                    NumberComparisonTypes.GreaterEqual => clubs.Where(c => c.FoundationYear >= clubQuery.FoundationYear),
-                    _ => clubs
-                };
-            }
-
             return clubs;
         }
 
@@ -174,12 +171,6 @@ namespace PitchSwitchBackend.Services.ClubService
                     clubs = clubQuery.IsDescending ? clubs.OrderByDescending(c => c.League) : clubs.OrderBy(c => c.League);
                 else if (clubQuery.SortBy.Equals(nameof(ClubQueryObject.Country), StringComparison.OrdinalIgnoreCase))
                     clubs = clubQuery.IsDescending ? clubs.OrderByDescending(c => c.Country) : clubs.OrderBy(c => c.Country);
-                else if (clubQuery.SortBy.Equals(nameof(ClubQueryObject.City), StringComparison.OrdinalIgnoreCase))
-                    clubs = clubQuery.IsDescending ? clubs.OrderByDescending(c => c.City) : clubs.OrderBy(c => c.City);
-                else if (clubQuery.SortBy.Equals(nameof(ClubQueryObject.FoundationYear), StringComparison.OrdinalIgnoreCase))
-                    clubs = clubQuery.IsDescending ? clubs.OrderByDescending(c => c.FoundationYear) : clubs.OrderBy(c => c.FoundationYear);
-                else if (clubQuery.SortBy.Equals(nameof(ClubQueryObject.Stadium), StringComparison.OrdinalIgnoreCase))
-                    clubs = clubQuery.IsDescending ? clubs.OrderByDescending(c => c.Stadium) : clubs.OrderBy(c => c.Stadium);
             }
 
             return clubs;

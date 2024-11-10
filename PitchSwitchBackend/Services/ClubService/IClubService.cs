@@ -13,6 +13,6 @@ namespace PitchSwitchBackend.Services.ClubService
         Task<Club?> GetClubById(int clubId);
         Task<ClubDto?> UpdateClub(Club club, UpdateClubDto updateClubDto);
         Task<bool> ArchiveClub(int clubId);
-        Task<bool> RestoreClub(int clubId);
+        Task<ClubDto?> RestoreClub(int clubId);
     }
 }

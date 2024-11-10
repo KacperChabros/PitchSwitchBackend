@@ -13,14 +13,7 @@ namespace PitchSwitchBackend.Dtos.Club.Requests
         public string? League { get; set; } = null;
         [StringLength(150)]
         public string? Country { get; set; } = null;
-        [StringLength(150)]
-        public string? City { get; set; } = null;
-        [RegularExpression(@"^\d{4}$", ErrorMessage = "Foundation Year must be a four-digit number.")]
-        public int? FoundationYear { get; set; } = null;
-        [StringLength(2, MinimumLength = 2)]
-        public string FoundationYearComparison { get; set; } = NumberComparisonTypes.Equal;
-        [StringLength(255)]
-        public string? Stadium { get; set; } = null;
+        public bool? IncludeArchived { get; set; } = false;
         [StringLength(50)]
         public string? SortBy { get; set; } = null;
         public bool IsDescending { get; set; } = false;
