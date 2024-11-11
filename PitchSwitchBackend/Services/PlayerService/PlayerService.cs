@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
 using PitchSwitchBackend.Dtos.Player.Requests;
 using PitchSwitchBackend.Dtos.Player.Responses;
 using PitchSwitchBackend.Helpers;
@@ -30,15 +31,21 @@ namespace PitchSwitchBackend.Services.PlayerService
             {
                 throw new ArgumentException("Given club does not exist");
             }
+            var player = addPlayerDto.FromAddNewPlayerDtoToModel();
+            if (addPlayerDto.Photo != null)
+            {
+                var photoPath = await _imageService.UploadFileAsync(addPlayerDto.Photo, UploadFolders.PlayersDir);
+                player.PhotoUrl = photoPath;
+            }
 
-            var result = await _context.Players.AddAsync(addPlayerDto.FromAddNewPlayerDtoToModel());
+            var result = await _context.Players.AddAsync(player);
             await _context.SaveChangesAsync();
             var addedPlayer = await GetPlayerByIdWithAllData(result.Entity.PlayerId);
 
             return addedPlayer?.FromModelToNewPlayerDto();
         }
 
-        public async Task<List<PlayerDto>> GetPlayers(PlayerQueryObject playerQuery)
+        public async Task<PaginatedListDto<PlayerDto>> GetPlayers(PlayerQueryObject playerQuery)
         {
             var players = _context.Players.AsQueryable();
 
@@ -46,11 +53,17 @@ namespace PitchSwitchBackend.Services.PlayerService
 
             players = SortPlayers(players, playerQuery);
             
+            var totalCount = players.Count();
+
             var skipNumber = (playerQuery.PageNumber - 1) * playerQuery.PageSize;
 
             var filteredPlayers = await players.Skip(skipNumber).Take(playerQuery.PageSize).Include(p => p.Club).ToListAsync();
-            
-            return filteredPlayers.Select(p => p.FromModelToPlayerDto()).ToList();
+            var paginatedPlayers = filteredPlayers.Select(p => p.FromModelToPlayerDto()).ToList();
+            return new PaginatedListDto<PlayerDto>
+            {
+                Items = paginatedPlayers,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<Player?> GetPlayerById(int playerId)
@@ -74,6 +87,21 @@ namespace PitchSwitchBackend.Services.PlayerService
             if (!await ValidateClubExists(updatePlayerDto.ClubId))
             {
                 throw new ArgumentException("Given club does not exist");
+            }
+
+            if (updatePlayerDto.Photo != null)
+            {
+                var oldPhotoUrl = player.PhotoUrl;
+                var newPhotoUrl = await _imageService.UploadFileAsync(updatePlayerDto.Photo, UploadFolders.PlayersDir);
+                player.PhotoUrl = newPhotoUrl;
+                if (!string.IsNullOrEmpty(oldPhotoUrl))
+                    _imageService.DeleteFile(oldPhotoUrl);
+            }
+            else if (updatePlayerDto.IsPhotoDeleted)
+            {
+                if (!string.IsNullOrEmpty(player.PhotoUrl))
+                    _imageService.DeleteFile(player.PhotoUrl);
+                player.PhotoUrl = null;
             }
 
             if (!string.IsNullOrWhiteSpace(updatePlayerDto.FirstName))
@@ -102,11 +130,6 @@ namespace PitchSwitchBackend.Services.PlayerService
 
             if (updatePlayerDto.MarketValue != null)
                 player.MarketValue = (decimal)updatePlayerDto.MarketValue;
-
-            if (updatePlayerDto.IsPhotoUrlDeleted)
-                player.PhotoUrl = null;
-            else if (!string.IsNullOrWhiteSpace(updatePlayerDto.PhotoUrl))
-                player.PhotoUrl = updatePlayerDto.PhotoUrl;
 
             if (updatePlayerDto.IsClubIdDeleted)
                 player.ClubId = null;

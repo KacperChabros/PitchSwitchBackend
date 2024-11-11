@@ -30,8 +30,7 @@ namespace PitchSwitchBackend.Dtos.Player.Requests
         [Required]
         [Range(0, 1000000000)]
         public decimal MarketValue { get; set; }
-        [StringLength(255, MinimumLength = 2)]
-        public string? PhotoUrl { get; set; }
+        public IFormFile? Photo { get; set; }
         public int? ClubId { get; set; }
     }
 }

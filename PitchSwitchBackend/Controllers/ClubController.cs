@@ -19,7 +19,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPost("addclub")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddClub([FromBody] AddClubDto addClubDto)
+        public async Task<IActionResult> AddClub([FromForm] AddClubDto addClubDto)
         {
             if (!ModelState.IsValid)
             {
@@ -46,6 +46,25 @@ namespace PitchSwitchBackend.Controllers
             }
 
             var clubs = await _clubService.GetAllClubs(clubQuery);
+
+            if (clubs == null || clubs.Items == null || clubs.Items.Count == 0)
+            {
+                return NotFound("There are no clubs");
+            }
+
+            return Ok(clubs);
+        }
+
+        [HttpGet("getallminclubs")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalClubs()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var clubs = await _clubService.GetAllMinimalClubs();
 
             if (clubs == null || clubs.Count == 0)
             {

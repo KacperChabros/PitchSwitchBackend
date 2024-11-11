@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
 using PitchSwitchBackend.Dtos.Club.Requests;
 using PitchSwitchBackend.Dtos.Club.Responses;
 using PitchSwitchBackend.Helpers;
@@ -32,13 +33,20 @@ namespace PitchSwitchBackend.Services.ClubService
 
         public async Task<NewClubDto?> AddClub(AddClubDto addClubDto)
         {
-            var result = await _context.Clubs.AddAsync(addClubDto.FromAddClubDtoToModel());
+            var club = addClubDto.FromAddClubDtoToModel();
+            if(addClubDto.Logo != null)
+            {
+                var logoPath = await _imageService.UploadFileAsync(addClubDto.Logo, UploadFolders.ClubsDir);
+                club.LogoUrl = logoPath;
+            }
+            var result = await _context.Clubs.AddAsync(club);
+
             await _context.SaveChangesAsync();
 
             return result.Entity?.FromModelToNewClubDto();
         }
 
-        public async Task<List<ClubDto>> GetAllClubs(ClubQueryObject clubQuery)
+        public async Task<PaginatedListDto<ClubDto>> GetAllClubs(ClubQueryObject clubQuery)
         {
             var clubs = _context.Clubs.AsQueryable();
             if (clubQuery.IncludeArchived.HasValue && !clubQuery.IncludeArchived.Value)
@@ -50,9 +58,21 @@ namespace PitchSwitchBackend.Services.ClubService
 
             var skipNumber = (clubQuery.PageNumber - 1) * clubQuery.PageSize;
 
-            var filteredClubs = await clubs.Skip(skipNumber).Take(clubQuery.PageSize).ToListAsync();
+            var totalCount = clubs.Count();
 
-            return filteredClubs.Select(c => c.FromModelToClubDto()).ToList();
+            var filteredClubs = await clubs.Skip(skipNumber).Take(clubQuery.PageSize).ToListAsync();
+            var paginatedClubs = new PaginatedListDto<ClubDto>
+            {
+                Items = filteredClubs.Select(c => c.FromModelToClubDto()).ToList(),
+                TotalCount = totalCount
+            };
+            return paginatedClubs;
+        }
+
+        public async Task<List<MinimalClubDto>> GetAllMinimalClubs()
+        {
+            var clubs = _context.Clubs.AsQueryable().Where(c => !c.IsArchived);
+            return await clubs.Select(c => c.FromModelToMinimalClubDto()).ToListAsync();
         }
 
         public async Task<Club?> GetClubById(int clubId)
