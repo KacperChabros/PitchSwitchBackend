@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
 using PitchSwitchBackend.Dtos.Player.Requests;
 using PitchSwitchBackend.Dtos.Transfer.Requests;
 using PitchSwitchBackend.Dtos.Transfer.Responses;
@@ -45,7 +46,7 @@ namespace PitchSwitchBackend.Services.TransferService
             return addedTransfer?.FromModelToNewTransferDto();
         }
 
-        public async Task<List<TransferDto>> GetTransfers(TransferQueryObject transferQuery)
+        public async Task<PaginatedListDto<TransferDto>> GetTransfers(TransferQueryObject transferQuery)
         {
             var transfers = _context.Transfers.AsQueryable();
 
@@ -53,12 +54,19 @@ namespace PitchSwitchBackend.Services.TransferService
 
             transfers = SortTransfers(transfers, transferQuery);
 
+            var totalCount = await transfers.CountAsync();
+
             var skipNumber = (transferQuery.PageNumber - 1) * transferQuery.PageSize;
 
             var filteredTransfers = await transfers.Skip(skipNumber).Take(transferQuery.PageSize)
                 .Include(t => t.Player).Include(t => t.SellingClub).Include(t => t.BuyingClub).ToListAsync();
-
-            return filteredTransfers.Select(t => t.FromModelToTransferDto()).ToList();
+            
+            var paginatedTransfers = filteredTransfers.Select(t => t.FromModelToTransferDto()).ToList();
+            return new PaginatedListDto<TransferDto>
+            {
+                Items = paginatedTransfers,
+                TotalCount = totalCount,
+            };
         }
 
         public async Task<Transfer?> GetTransferWithDataById(int transferId)

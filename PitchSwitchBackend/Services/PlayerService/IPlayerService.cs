@@ -9,6 +9,7 @@ namespace PitchSwitchBackend.Services.PlayerService
     {
         Task<NewPlayerDto?> AddPlayer(AddPlayerDto addPlayerDto);
         Task<PaginatedListDto<PlayerDto>> GetPlayers(PlayerQueryObject playerQuery);
+        Task<List<MinimalPlayerDto>> GetAllMinimalPlayers();
         Task<Player?> GetPlayerById(int playerId);
         Task<Player?> GetPlayerWithClubById(int playerId);
         Task<Player?> GetPlayerByIdWithAllData(int playerId);

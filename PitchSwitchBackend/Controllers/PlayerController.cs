@@ -54,6 +54,25 @@ namespace PitchSwitchBackend.Controllers
             return Ok(players);
         }
 
+        [HttpGet("getallminplayers")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalPlayers()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var players = await _playerService.GetAllMinimalPlayers();
+
+            if (players == null || players.Count == 0)
+            {
+                return NotFound("There are no players");
+            }
+
+            return Ok(players);
+        }
+
         [HttpGet("getplayer/{playerId:int}")]
         [Authorize]
         public async Task<IActionResult> GetPlayer([FromRoute] int playerId)

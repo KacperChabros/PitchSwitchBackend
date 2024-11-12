@@ -66,6 +66,12 @@ namespace PitchSwitchBackend.Services.PlayerService
             };
         }
 
+        public async Task<List<MinimalPlayerDto>> GetAllMinimalPlayers()
+        {
+            var players = _context.Players.AsQueryable();
+            return await players.Select(p => p.FromModelToMinimalPlayerDto()).ToListAsync();
+        }
+
         public async Task<Player?> GetPlayerById(int playerId)
         {
             return await _context.Players.FirstOrDefaultAsync(p => p.PlayerId == playerId);
