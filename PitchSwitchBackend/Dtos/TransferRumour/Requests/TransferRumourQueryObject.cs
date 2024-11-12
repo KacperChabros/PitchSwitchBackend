@@ -11,7 +11,7 @@ namespace PitchSwitchBackend.Dtos.TransferRumour.Requests
         public decimal? RumouredFee { get; set; } = null;
         [StringLength(2, MinimumLength = 2)]
         public string RumouredFeeComparison { get; set; } = NumberComparisonTypes.Equal;
-        [Range(1, 10)]
+        [Range(1, 100)]
         public int? ConfidenceLevel { get; set; } = null;
         [StringLength(2, MinimumLength = 2)]
         public string ConfidenceLevelComparison { get; set; } = NumberComparisonTypes.Equal;

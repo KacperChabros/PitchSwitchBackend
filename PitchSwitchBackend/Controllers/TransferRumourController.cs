@@ -52,7 +52,7 @@ namespace PitchSwitchBackend.Controllers
 
             var transfersRumours = await _transferRumourService.GetTransferRumours(transferRumourQuery);
 
-            if (transfersRumours == null || transfersRumours.Count == 0)
+            if (transfersRumours == null || transfersRumours.Items == null || transfersRumours.Items.Count == 0)
             {
                 return NotFound("There are no transfer rumours matching the criteria");
             }
@@ -132,14 +132,14 @@ namespace PitchSwitchBackend.Controllers
             {
                 return Forbid();
             }
-            var result = await _transferRumourService.ArchiveTransferRumour(transferRumour, isConfirmed);
+            var transferRumourArchived = await _transferRumourService.ArchiveTransferRumour(transferRumour, isConfirmed);
 
-            if (!result)
+            if (transferRumourArchived == null)
             {
                 return NotFound("There is no such transfer rumour");
             }
 
-            return Ok();
+            return Ok(transferRumourArchived);
         }
 
         [HttpDelete("deletetransferrumour/{transferRumourId:int}")]

@@ -72,6 +72,7 @@ namespace PitchSwitchBackend.Mappers
         {
             return new MinimalUserDto
             {
+                UserId = appUser.Id,
                 UserName = appUser.UserName,
                 ProfilePictureUrl = appUser.ProfilePictureUrl
             };
