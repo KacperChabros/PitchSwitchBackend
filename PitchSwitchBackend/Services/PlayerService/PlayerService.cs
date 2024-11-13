@@ -68,7 +68,7 @@ namespace PitchSwitchBackend.Services.PlayerService
 
         public async Task<List<MinimalPlayerDto>> GetAllMinimalPlayers()
         {
-            var players = _context.Players.AsQueryable();
+            var players = _context.Players.Include(p => p.Club).AsQueryable();
             return await players.Select(p => p.FromModelToMinimalPlayerDto()).ToListAsync();
         }
 

@@ -59,7 +59,7 @@ namespace PitchSwitchBackend.Services.TransferService
             var skipNumber = (transferQuery.PageNumber - 1) * transferQuery.PageSize;
 
             var filteredTransfers = await transfers.Skip(skipNumber).Take(transferQuery.PageSize)
-                .Include(t => t.Player).Include(t => t.SellingClub).Include(t => t.BuyingClub).ToListAsync();
+                .Include(t => t.Player).ThenInclude(p => p.Club).Include(t => t.SellingClub).Include(t => t.BuyingClub).ToListAsync();
             
             var paginatedTransfers = filteredTransfers.Select(t => t.FromModelToTransferDto()).ToList();
             return new PaginatedListDto<TransferDto>
@@ -67,6 +67,12 @@ namespace PitchSwitchBackend.Services.TransferService
                 Items = paginatedTransfers,
                 TotalCount = totalCount,
             };
+        }
+
+        public async Task<List<MinimalTransferDto>> GetAllMinimalTransfers()
+        {
+            var transfers = _context.Transfers.Include(t => t.Player).ThenInclude(p => p.Club).Include(t => t.SellingClub).Include(t => t.BuyingClub).AsQueryable();
+            return await transfers.Select(t => t.FromModelToMinimalTransferDto()).ToListAsync();
         }
 
         public async Task<Transfer?> GetTransferWithDataById(int transferId)

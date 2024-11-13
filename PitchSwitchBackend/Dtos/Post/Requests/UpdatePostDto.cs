@@ -9,11 +9,10 @@ namespace PitchSwitchBackend.Dtos.Post.Requests
         public string? Title { get; set; } = null;
         [StringLength(500, MinimumLength = 5)]
         public string? Content { get; set; } = null;
-        [StringLength(255, MinimumLength = 3)]
-        public string? ImageUrl { get; set; } = null;
+        public IFormFile? Image { get; set; } = null;
         [Required]
         [DefaultValue(false)]
-        public bool IsImageUrlDeleted { get; set; } = false;
+        public bool IsImageDeleted { get; set; } = false;
         public int? TransferId { get; set; } = null;
         [Required]
         [DefaultValue(false)]

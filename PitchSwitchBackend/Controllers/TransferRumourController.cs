@@ -60,6 +60,25 @@ namespace PitchSwitchBackend.Controllers
             return Ok(transfersRumours);
         }
 
+        [HttpGet("getallmintransferrumours")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalTransfer()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var tranfserRumours = await _transferRumourService.GetAllMinimalTransferRumours();
+
+            if (tranfserRumours == null || tranfserRumours.Count == 0)
+            {
+                return NotFound("There are no tranfser rumours");
+            }
+
+            return Ok(tranfserRumours);
+        }
+
         [HttpGet("gettransferrumour/{transferRumourId:int}")]
         [Authorize]
         public async Task<IActionResult> GetTransferRumour([FromRoute] int transferRumourId)

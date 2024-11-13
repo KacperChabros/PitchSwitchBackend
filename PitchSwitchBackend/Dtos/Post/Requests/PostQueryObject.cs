@@ -12,10 +12,10 @@ namespace PitchSwitchBackend.Dtos.Post.Requests
         public DateTime? CreatedOn { get; set; } = null;
         [StringLength(2, MinimumLength = 2)]
         public string CreatedOnComparison { get; set; } = NumberComparisonTypes.Equal;
-        [StringLength(450)]
-        public string? CreatedByUserId { get; set; } = null;
         public int? TransferId { get; set; } = null;
+        public bool FilterForEmptyTransferIfEmpty { get; set; } = false;
         public int? TransferRumourId { get; set; } = null;
+        public bool FilterForEmptyTransferRumourIfEmpty { get; set; } = false;
         [StringLength(50)]
         public string? SortBy { get; set; } = null;
         public bool IsDescending { get; set; } = false;

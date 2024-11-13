@@ -29,6 +29,7 @@ namespace PitchSwitchBackend.Mappers
                 Content = post.Content,
                 ImageUrl = post.ImageUrl,
                 CreatedOn = post.CreatedOn,
+                IsEdited = post.IsEdited,
                 CreatedByUser = post.CreatedByUser.FromModelToMinimalUserDto(),
                 Transfer = post.Transfer?.FromModelToMinimalTransferDto(),
                 TransferRumour = post.TransferRumour?.FromModelToMinimalTransferRumourDto(),
@@ -42,7 +43,6 @@ namespace PitchSwitchBackend.Mappers
             {
                 Title = addPostDto.Title,
                 Content = addPostDto.Content,
-                ImageUrl = addPostDto.ImageUrl,
                 TransferId = addPostDto.TransferId,
                 TransferRumourId = addPostDto.TransferRumourId
             };
