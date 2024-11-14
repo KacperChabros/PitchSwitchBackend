@@ -52,12 +52,31 @@ namespace PitchSwitchBackend.Controllers
 
             var transfersRumours = await _transferRumourService.GetTransferRumours(transferRumourQuery);
 
-            if (transfersRumours == null || transfersRumours.Count == 0)
+            if (transfersRumours == null || transfersRumours.Items == null || transfersRumours.Items.Count == 0)
             {
                 return NotFound("There are no transfer rumours matching the criteria");
             }
 
             return Ok(transfersRumours);
+        }
+
+        [HttpGet("getallmintransferrumours")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalTransfer()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var tranfserRumours = await _transferRumourService.GetAllMinimalTransferRumours();
+
+            if (tranfserRumours == null || tranfserRumours.Count == 0)
+            {
+                return NotFound("There are no tranfser rumours");
+            }
+
+            return Ok(tranfserRumours);
         }
 
         [HttpGet("gettransferrumour/{transferRumourId:int}")]
@@ -132,14 +151,14 @@ namespace PitchSwitchBackend.Controllers
             {
                 return Forbid();
             }
-            var result = await _transferRumourService.ArchiveTransferRumour(transferRumour, isConfirmed);
+            var transferRumourArchived = await _transferRumourService.ArchiveTransferRumour(transferRumour, isConfirmed);
 
-            if (!result)
+            if (transferRumourArchived == null)
             {
                 return NotFound("There is no such transfer rumour");
             }
 
-            return Ok();
+            return Ok(transferRumourArchived);
         }
 
         [HttpDelete("deletetransferrumour/{transferRumourId:int}")]

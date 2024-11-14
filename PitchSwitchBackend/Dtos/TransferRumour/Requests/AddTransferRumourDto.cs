@@ -11,7 +11,7 @@ namespace PitchSwitchBackend.Dtos.TransferRumour.Requests
         [Range(0, 1000000000)]
         public decimal RumouredFee { get; set; }
         [Required]
-        [Range(1, 10)]
+        [Range(1, 100)]
         public int ConfidenceLevel { get; set; }
         [Required]
         public int PlayerId { get; set; }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Post.Requests;
 using PitchSwitchBackend.Mappers;
+using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.PostService;
 using System.Security.Claims;
 
@@ -19,7 +20,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPost("addpost")]
         [Authorize(Roles = "Admin, Journalist")]
-        public async Task<IActionResult> AddPost([FromBody] AddPostDto addPostDto)
+        public async Task<IActionResult> AddPost([FromForm] AddPostDto addPostDto)
         {
             if (!ModelState.IsValid)
             {
@@ -44,7 +45,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpGet("getallposts")]
         [Authorize]
-        public async Task<IActionResult> GetAllClubs([FromQuery] PostQueryObject postQuery)
+        public async Task<IActionResult> GetAllPosts([FromQuery] PostQueryObject postQuery)
         {
             if (!ModelState.IsValid)
             {
@@ -52,8 +53,7 @@ namespace PitchSwitchBackend.Controllers
             }
 
             var posts = await _postService.GetAllPosts(postQuery);
-
-            if (posts == null)
+            if (posts == null || posts.Items == null || posts.Items.Count == 0)
             {
                 return NotFound("There are no posts matching the criteria");
             }
@@ -82,7 +82,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPut("updatepost/{postId:int}")]
         [Authorize(Roles = "Admin, Journalist")]
-        public async Task<IActionResult> UpdatePost([FromRoute] int postId, [FromBody] UpdatePostDto updatePostDto)
+        public async Task<IActionResult> UpdatePost([FromRoute] int postId, [FromForm] UpdatePostDto updatePostDto)
         {
             if (!ModelState.IsValid)
             {

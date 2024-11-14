@@ -22,11 +22,10 @@ namespace PitchSwitchBackend.Dtos.Player.Requests
         public Foot? PreferredFoot { get; set; } = null;
         [Range(0, 1000000000)]
         public decimal? MarketValue { get; set; } = null;
-        [StringLength(255, MinimumLength = 2)]
-        public string? PhotoUrl { get; set; } = null;
+        public IFormFile? Photo { get; set; } = null;
         [Required]
         [DefaultValue(false)]
-        public bool IsPhotoUrlDeleted { get; set; } = false;
+        public bool IsPhotoDeleted { get; set; } = false;
         public int? ClubId { get; set; } = null;
         [Required]
         [DefaultValue(false)]

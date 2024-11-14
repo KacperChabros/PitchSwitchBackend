@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Transfer.Requests;
 using PitchSwitchBackend.Mappers;
+using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.TransferService;
 
 namespace PitchSwitchBackend.Controllers
@@ -45,13 +46,31 @@ namespace PitchSwitchBackend.Controllers
             }
 
             var transfers = await _transferService.GetTransfers(transferQuery);
-
-            if (transfers == null || transfers.Count == 0)
+            if (transfers == null || transfers.Items == null || transfers.Items.Count == 0)
             {
                 return NotFound("There are no transfers matching the criteria");
             }
 
             return Ok(transfers);
+        }
+
+        [HttpGet("getallmintransfers")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalTransfer()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var tranfsers = await _transferService.GetAllMinimalTransfers();
+
+            if (tranfsers == null || tranfsers.Count == 0)
+            {
+                return NotFound("There are no tranfsers");
+            }
+
+            return Ok(tranfsers);
         }
 
         [HttpGet("gettransfer/{transferId:int}")]

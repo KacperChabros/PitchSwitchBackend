@@ -6,7 +6,7 @@ using PitchSwitchBackend.Services.ClubService;
 
 namespace PitchSwitchBackend.Controllers
 {
-    [Route("api/club")]
+    [Route("api/clubs")]
     [ApiController]
     public class ClubController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPost("addclub")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddClub([FromBody] AddClubDto addClubDto)
+        public async Task<IActionResult> AddClub([FromForm] AddClubDto addClubDto)
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +47,26 @@ namespace PitchSwitchBackend.Controllers
 
             var clubs = await _clubService.GetAllClubs(clubQuery);
 
-            if (clubs == null)
+            if (clubs == null || clubs.Items == null || clubs.Items.Count == 0)
+            {
+                return NotFound("There are no clubs");
+            }
+
+            return Ok(clubs);
+        }
+
+        [HttpGet("getallminclubs")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalClubs()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var clubs = await _clubService.GetAllMinimalClubs();
+
+            if (clubs == null || clubs.Count == 0)
             {
                 return NotFound("There are no clubs");
             }
@@ -76,7 +95,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPut("updateclub/{clubId:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateClub([FromRoute] int clubId, [FromBody] UpdateClubDto updateClubDto)
+        public async Task<IActionResult> UpdateClub([FromRoute] int clubId, [FromForm] UpdateClubDto updateClubDto)
         {
             if (!ModelState.IsValid)
             {
@@ -123,14 +142,14 @@ namespace PitchSwitchBackend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _clubService.RestoreClub(clubId);
+            var club = await _clubService.RestoreClub(clubId);
 
-            if (!result)
+            if (club == null)
             {
                 return NotFound("There is no such club");
             }
 
-            return Ok();
+            return Ok(club);
         }
     }
 }

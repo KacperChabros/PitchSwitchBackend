@@ -19,10 +19,9 @@ namespace PitchSwitchBackend.Dtos.Club.Requests
         public int? FoundationYear { get; set; } = null;
         [StringLength(255, MinimumLength = 3)]
         public string? Stadium { get; set; } = null;
-        [StringLength(255, MinimumLength = 3)]
-        public string? LogoUrl { get; set; } = null;
+        public IFormFile? Logo { get; set; } = null;
         [Required]
         [DefaultValue(false)]
-        public bool IsLogoUrlDeleted { get; set; } = false;
+        public bool IsLogoDeleted { get; set; } = false;
     }
 }

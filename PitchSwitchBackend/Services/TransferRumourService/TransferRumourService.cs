@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
+using PitchSwitchBackend.Dtos.Transfer.Responses;
 using PitchSwitchBackend.Dtos.TransferRumour.Requests;
 using PitchSwitchBackend.Dtos.TransferRumour.Responses;
 using PitchSwitchBackend.Helpers;
@@ -43,7 +45,7 @@ namespace PitchSwitchBackend.Services.TransferRumourService
             return addedTransferRumour?.FromModelToNewTransferRumourDto();
         }
 
-        public async Task<List<TransferRumourDto>> GetTransferRumours(TransferRumourQueryObject transferRumourQuery)
+        public async Task<PaginatedListDto<TransferRumourDto>> GetTransferRumours(TransferRumourQueryObject transferRumourQuery)
         {
             var transferRumours = _context.TransferRumours.AsQueryable().Where(tr => !tr.IsArchived);
 
@@ -51,13 +53,31 @@ namespace PitchSwitchBackend.Services.TransferRumourService
 
             transferRumours = SortTransferRumours(transferRumours, transferRumourQuery);
 
+            var totalCount = await transferRumours.CountAsync();
+
             var skipNumber = (transferRumourQuery.PageNumber - 1) * transferRumourQuery.PageSize;
 
-            var filteredTransfers = await transferRumours.Skip(skipNumber).Take(transferRumourQuery.PageSize)
+            var filteredTransferRumours = await transferRumours.Skip(skipNumber).Take(transferRumourQuery.PageSize)
                 .Include(tr => tr.CreatedByUser)
-                .Include(tr => tr.Player).Include(tr => tr.SellingClub).Include(tr => tr.BuyingClub).ToListAsync();
+                .Include(tr => tr.Player).ThenInclude(p => p.Club)
+                .Include(tr => tr.SellingClub).Include(tr => tr.BuyingClub).ToListAsync();
 
-            return filteredTransfers.Select(tr => tr.FromModelToTransferRumourDto()).ToList();
+            var paginatedTransferRumours = filteredTransferRumours.Select(tr => tr.FromModelToTransferRumourDto()).ToList();
+            return new PaginatedListDto<TransferRumourDto>
+            {
+                Items = paginatedTransferRumours,
+                TotalCount = totalCount,
+            };
+        }
+
+        public async Task<List<MinimalTransferRumourDto>> GetAllMinimalTransferRumours()
+        {
+            var transfersRumours = _context.TransferRumours
+                .Include(tr => tr.CreatedByUser)
+                .Include(tr => tr.Player).ThenInclude(p => p.Club)
+                .Include(tr => tr.SellingClub).Include(tr => tr.BuyingClub)
+                .AsQueryable().Where(tr => !tr.IsArchived);
+            return await transfersRumours.Select(tr => tr.FromModelToMinimalTransferRumourDto()).ToListAsync();
         }
 
         public async Task<TransferRumour?> GetTransferRumourById(int transferRumourId)
@@ -121,16 +141,16 @@ namespace PitchSwitchBackend.Services.TransferRumourService
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> ArchiveTransferRumour(TransferRumour transferRumour, bool isConfirmed)
+        public async Task<TransferRumourDto?> ArchiveTransferRumour(TransferRumour transferRumour, bool isConfirmed)
         {
             if (transferRumour == null)
-                return false;
+                return null;
 
             transferRumour.IsConfirmed = isConfirmed;
             transferRumour.IsArchived = true;
             await _context.SaveChangesAsync();
 
-            return true;
+            return (await GetTransferRumourWithDataById(transferRumour.TransferRumourId))?.FromModelToTransferRumourDto();
         }
 
         public async Task<bool> TransferRumourExists(int transferRumourId)

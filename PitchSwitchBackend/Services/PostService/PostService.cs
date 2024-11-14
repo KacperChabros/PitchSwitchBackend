@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
+using PitchSwitchBackend.Dtos.Club.Requests;
 using PitchSwitchBackend.Dtos.Post.Requests;
 using PitchSwitchBackend.Dtos.Post.Responses;
 using PitchSwitchBackend.Helpers;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
+using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.TransferRumourService;
 using PitchSwitchBackend.Services.TransferService;
+using System.Security.Cryptography.Xml;
 
 namespace PitchSwitchBackend.Services.PostService
 {
@@ -15,13 +19,16 @@ namespace PitchSwitchBackend.Services.PostService
         private readonly ApplicationDBContext _context;
         private readonly ITransferService _transferService;
         private readonly ITransferRumourService _transferRumourService;
+        private readonly IImageService _imageService;
         public PostService(ApplicationDBContext context,
             ITransferService transferService,
-            ITransferRumourService transferRumourService)
+            ITransferRumourService transferRumourService,
+            IImageService imageService)
         {
             _context = context;
             _transferService = transferService;
             _transferRumourService = transferRumourService;
+            _imageService = imageService;
         }
 
         public async Task<bool> PostExists(int postId)
@@ -33,6 +40,13 @@ namespace PitchSwitchBackend.Services.PostService
         {
             await ValidateAddPostData(addPostDto);
             var post = addPostDto.FromAddPostDtoToModel();
+
+            if (addPostDto.Image != null)
+            {
+                var imagePath = await _imageService.UploadFileAsync(addPostDto.Image, UploadFolders.PostsDir);
+                post.ImageUrl = imagePath;
+            }
+
             post.CreatedByUserId = userId;
             post.CreatedOn = DateTime.UtcNow;
             post.IsEdited = false;
@@ -50,7 +64,7 @@ namespace PitchSwitchBackend.Services.PostService
             return result.Entity?.FromModelToNewPostDto();
         }
 
-        public async Task<List<ListElementPostDto>> GetAllPosts(PostQueryObject postQuery)
+        public async Task<PaginatedListDto<ListElementPostDto>> GetAllPosts(PostQueryObject postQuery)
         {
             var posts = _context.Posts.AsQueryable();
 
@@ -58,13 +72,21 @@ namespace PitchSwitchBackend.Services.PostService
 
             posts = SortPosts(posts, postQuery);
 
+            var totalCount = await posts.CountAsync();
+
             var skipNumber = (postQuery.PageNumber - 1) * postQuery.PageSize;
 
             posts = IncludeRelatedDataForList(posts);
 
             var filteredPosts = await posts.Skip(skipNumber).Take(postQuery.PageSize).ToListAsync();
 
-            return filteredPosts.Select(p => p.FromModelToListElementPostDto()).ToList();
+            var paginatedPosts = filteredPosts.Select(p => p.FromModelToListElementPostDto()).ToList();
+
+            return new PaginatedListDto<ListElementPostDto>
+            {
+                Items = paginatedPosts,
+                TotalCount = totalCount,
+            };
         }
 
         public async Task<Post?> GetPostById(int postId)
@@ -82,6 +104,7 @@ namespace PitchSwitchBackend.Services.PostService
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.Player)
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.SellingClub)
                 .Include(p => p.TransferRumour).ThenInclude(tr => tr.BuyingClub)
+                .Include(p => p.TransferRumour).ThenInclude(tr => tr.CreatedByUser)
                 .Include(p => p.Comments).ThenInclude(c => c.CreatedByUser)
                 .FirstOrDefaultAsync();
         }
@@ -90,16 +113,27 @@ namespace PitchSwitchBackend.Services.PostService
         {
             await ValidateUpdatePostData(post, updatePostDto);
 
+            if (updatePostDto.Image != null)
+            {
+                var oldImageUrl = post.ImageUrl;
+                var newImageUrl = await _imageService.UploadFileAsync(updatePostDto.Image, UploadFolders.PostsDir);
+                post.ImageUrl = newImageUrl;
+                if (!string.IsNullOrEmpty(oldImageUrl))
+                    _imageService.DeleteFile(oldImageUrl);
+            }
+            else if (updatePostDto.IsImageDeleted)
+            {
+                if (!string.IsNullOrEmpty(post.ImageUrl))
+                    _imageService.DeleteFile(post.ImageUrl);
+                post.ImageUrl = null;
+            }
+
+
             if (!string.IsNullOrWhiteSpace(updatePostDto.Title))
                 post.Title = updatePostDto.Title;
 
             if (!string.IsNullOrWhiteSpace(updatePostDto.Content))
                 post.Content = updatePostDto.Content;
-
-            if (updatePostDto.IsImageUrlDeleted)
-                post.ImageUrl = null;
-            else if (!string.IsNullOrWhiteSpace(updatePostDto.ImageUrl))
-                post.ImageUrl = updatePostDto.ImageUrl;
 
             if (updatePostDto.IsTransferDeleted)
                 post.TransferId = null;
@@ -175,8 +209,6 @@ namespace PitchSwitchBackend.Services.PostService
             if (!string.IsNullOrWhiteSpace(postQuery.Content))
                 posts = posts.Where(p => p.Content.ToLower().Contains(postQuery.Content.ToLower()));
 
-            if (!string.IsNullOrWhiteSpace(postQuery.CreatedByUserId))
-                posts = posts.Where(p => p.CreatedByUserId.ToLower().Equals(postQuery.CreatedByUserId));
 
             if (postQuery.CreatedOn != null)
             {
@@ -192,10 +224,22 @@ namespace PitchSwitchBackend.Services.PostService
             }
 
             if (postQuery.TransferId.HasValue)
-                posts = posts.Where(p => p.TransferId ==  postQuery.TransferId.Value);
+            {
+                posts = posts.Where(p => p.TransferId == postQuery.TransferId.Value);
+            }
+            else if (postQuery.FilterForEmptyTransferIfEmpty)
+            {
+                posts = posts.Where(p => p.TransferId == null);
+            }
 
             if (postQuery.TransferRumourId.HasValue)
+            {
                 posts = posts.Where(p => p.TransferRumourId == postQuery.TransferRumourId.Value);
+            }
+            else if (postQuery.FilterForEmptyTransferRumourIfEmpty)
+            {
+                posts = posts.Where(p => p.TransferRumourId == null);
+            }
 
             return posts;
         }
@@ -229,7 +273,9 @@ namespace PitchSwitchBackend.Services.PostService
                 .Include(p => p.TransferRumour)
                     .ThenInclude(t => t.SellingClub)
                 .Include(p => p.TransferRumour)
-                    .ThenInclude(tr => tr.BuyingClub);
+                    .ThenInclude(tr => tr.BuyingClub)
+                .Include(p => p.TransferRumour)
+                        .ThenInclude(tr => tr.CreatedByUser);
             return posts;
         }
     }

@@ -6,7 +6,7 @@ namespace PitchSwitchBackend.Dtos.JournalistStatusApplication.Requests
     {
         [Required]
         public bool IsAccepted { get; set; } = false;
-        [StringLength(500, MinimumLength = 2)]
+        [StringLength(500)]
         public string? RejectionReason { get; set; }
     }
 }

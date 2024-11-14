@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Account.Requests;
+using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Services.AuthService;
 using System.Security.Claims;
 
@@ -20,7 +21,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
             {
@@ -74,9 +75,66 @@ namespace PitchSwitchBackend.Controllers
             return Unauthorized(new { Message = refreshTokenResult.ErrorMessage, ModelState });
         }
 
+        [HttpGet("getuserbyname/{userName}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByName([FromRoute] string userName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUser = await _authService.FindUserByName(userName);
+
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+            
+            return Ok(appUser.FromModelToGetUserDto());
+        }
+
+        [HttpGet("getuserbynamewithdata/{userName}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByNameWithData([FromRoute] string userName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUser = await _authService.FindUserByNameWithData(userName);
+
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+
+            return Ok(appUser.FromModelToGetUserDto());
+        }
+
+        [HttpGet("getallminusers")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllMinUsers()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUsers = await _authService.GetAllMinUsers();
+
+            if (appUsers == null || appUsers.Count == 0)
+            {
+                return NotFound("There ara no users");
+            }
+
+            return Ok(appUsers);
+        }
+
         [HttpPut("updateuserdata")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserDataDto updateUserDataDto)
+        public async Task<IActionResult> UpdateUserData([FromForm] UpdateUserDataDto updateUserDataDto)
         {
             if (!ModelState.IsValid)
             {
@@ -89,7 +147,7 @@ namespace PitchSwitchBackend.Controllers
                 return Unauthorized("You are unauthorized");
             }
 
-            var appUser = await _authService.FindUserByName(userName);
+            var appUser = await _authService.FindUserByNameWithData(userName);
             if (appUser == null)
             {
                 return NotFound("There is no such user");
@@ -150,7 +208,7 @@ namespace PitchSwitchBackend.Controllers
                 return Unauthorized("You are unauthorized");
             }
 
-            var appUser = await _authService.FindUserByName(userName);
+            var appUser = await _authService.FindUserByNameWithData(userName);
             if (appUser == null)
             {
                 return NotFound("There is no such user");

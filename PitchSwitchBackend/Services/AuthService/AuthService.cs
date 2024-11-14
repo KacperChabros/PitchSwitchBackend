@@ -3,10 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
 using PitchSwitchBackend.Dtos.Account.Requests;
 using PitchSwitchBackend.Dtos.Account.Responses;
+using PitchSwitchBackend.Helpers;
 using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.ClubService;
+using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.TokenService;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace PitchSwitchBackend.Services.AuthService
 {
@@ -17,28 +20,34 @@ namespace PitchSwitchBackend.Services.AuthService
         private readonly ApplicationDBContext _context;
         private readonly ITokenService _tokenService;
         private readonly IClubService _clubService;
+        private readonly IImageService _imageService;
         public AuthService(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ApplicationDBContext context,
             ITokenService tokenService,
-            IClubService clubService)
+            IClubService clubService,
+            IImageService imageService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _tokenService = tokenService;
             _clubService = clubService;
+            _imageService = imageService;
         }
 
         public async Task<IdentityResultDto<NewUserDto>> RegisterUser(RegisterDto registerDto)
         {
-            if (!await ValidateClubExists(registerDto.FavouriteClubId))
-            {
-                throw new ArgumentException("Given club does not exist");
-            }
-
             var appUser = registerDto.FromRegisterDtoToModel();
+
+            if (registerDto.ProfilePicture != null)
+            {
+                var profilePictureUrl = await _imageService.UploadFileAsync(registerDto.ProfilePicture, UploadFolders.UsersDir);
+                if(!string.IsNullOrWhiteSpace(profilePictureUrl))
+                    appUser.ProfilePictureUrl = profilePictureUrl;
+            }
+                
 
             var createdUserResult = await _userManager.CreateAsync(appUser, registerDto.Password);
 
@@ -111,12 +120,41 @@ namespace PitchSwitchBackend.Services.AuthService
         {
             return await _userManager.FindByNameAsync(userName);
         }
+        public async Task<AppUser?> FindUserByNameWithData(string userName)
+        {
+            var appUsers = _context.Users.AsQueryable().Where(u => u.UserName == userName);
+            var appUser = await appUsers.Include(u => u.FavouriteClub).Include(u => u.Posts).ThenInclude(p => p.Comments)
+                .Include(u => u.Applications).FirstOrDefaultAsync();
+            return appUser;
+        }
+
+        public async Task<List<MinimalUserDto>> GetAllMinUsers()
+        {
+            var appUsers = _context.Users.AsQueryable();
+            return await appUsers.Select(u => u.FromModelToMinimalUserDto()).ToListAsync();
+        }
+
 
         public async Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUserDataDto)
         {
             if (!await ValidateClubExists(updateUserDataDto.FavouriteClubId))
             {
                 throw new ArgumentException("Given club does not exist");
+            }
+
+            if (updateUserDataDto.ProfilePicture != null)
+            {
+                var oldPictureUrl = appUser.ProfilePictureUrl;
+                var newPictureUrl = await _imageService.UploadFileAsync(updateUserDataDto.ProfilePicture, UploadFolders.UsersDir);
+                appUser.ProfilePictureUrl = newPictureUrl;
+                if (!string.IsNullOrEmpty(oldPictureUrl))
+                    _imageService.DeleteFile(oldPictureUrl);
+            }
+            else if (updateUserDataDto.IsProfilePictureDeleted)
+            {
+                if (!string.IsNullOrEmpty(appUser.ProfilePictureUrl))
+                    _imageService.DeleteFile(appUser.ProfilePictureUrl);
+                appUser.ProfilePictureUrl = null;
             }
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.FirstName))
@@ -127,11 +165,6 @@ namespace PitchSwitchBackend.Services.AuthService
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.Email))
                 appUser.Email = updateUserDataDto.Email;
-
-            if (updateUserDataDto.IsProfilePictureUrlDeleted)
-                appUser.ProfilePictureUrl = null;
-            else if (!string.IsNullOrWhiteSpace(updateUserDataDto.ProfilePictureUrl))
-                appUser.ProfilePictureUrl = updateUserDataDto.ProfilePictureUrl;
 
             if (updateUserDataDto.IsBioDeleted)
                 appUser.Bio = null;
@@ -179,8 +212,12 @@ namespace PitchSwitchBackend.Services.AuthService
 
         public async Task<IdentityResultDto<string>> DeleteUser(AppUser appUser)
         {
-            // delete associated data
-
+            foreach (var post in appUser.Posts)
+            {
+                _context.Comments.RemoveRange(post.Comments);
+            }
+            _context.Posts.RemoveRange(appUser.Posts);
+            await _context.SaveChangesAsync();
             var result = await _userManager.DeleteAsync(appUser);
 
             if (result.Succeeded)

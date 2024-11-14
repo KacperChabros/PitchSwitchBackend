@@ -25,7 +25,6 @@ namespace PitchSwitchBackend.Dtos.Club.Requests
         [Required]
         [StringLength(255, MinimumLength = 3)]
         public string Stadium { get; set; }
-        [StringLength(255, MinimumLength = 3)]
-        public string? LogoUrl { get; set; }
+        public IFormFile? Logo { get; set; } = null;
     }
 }

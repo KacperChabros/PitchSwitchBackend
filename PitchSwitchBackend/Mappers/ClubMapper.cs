@@ -17,7 +17,6 @@ namespace PitchSwitchBackend.Mappers
                 City = addClubDto.City,
                 FoundationYear = addClubDto.FoundationYear,
                 Stadium = addClubDto.Stadium,
-                LogoUrl = addClubDto.LogoUrl
             };
         }
 

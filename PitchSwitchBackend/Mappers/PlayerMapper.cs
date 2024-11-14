@@ -19,7 +19,6 @@ namespace PitchSwitchBackend.Mappers
                 Weight = addPlayerDto.Weight,
                 PreferredFoot = addPlayerDto.PreferredFoot,
                 MarketValue = addPlayerDto.MarketValue,
-                PhotoUrl = addPlayerDto.PhotoUrl,
                 ClubId = addPlayerDto.ClubId
             };
         }

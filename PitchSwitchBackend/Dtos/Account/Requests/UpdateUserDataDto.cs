@@ -13,8 +13,7 @@ namespace PitchSwitchBackend.Dtos.Account.Requests
         public string? LastName { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "Favourite club must be a valid club ID.")]
         public int? FavouriteClubId { get; set; }
-        [StringLength(200, MinimumLength = 2, ErrorMessage = "Profile Picture Url must be betwwen 2 and 200 characters.")]
-        public string? ProfilePictureUrl { get; set; }
+        public IFormFile? ProfilePicture { get; set; }
         [StringLength(500, ErrorMessage = "Bio cannot be longer than 500 characters.")]
         public string? Bio { get; set; }
         [Required]
@@ -22,7 +21,7 @@ namespace PitchSwitchBackend.Dtos.Account.Requests
         public bool IsBioDeleted { get; set; } = false;
         [Required]
         [DefaultValue(false)]
-        public bool IsProfilePictureUrlDeleted { get; set; } = false;
+        public bool IsProfilePictureDeleted { get; set; } = false;
         [Required]
         [DefaultValue(false)]
         public bool IsFavouriteClubIdDeleted { get; set; } = false;

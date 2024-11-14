@@ -34,8 +34,6 @@ namespace PitchSwitchBackend.Mappers
                 Email = registerDto.Email,
                 FirstName = registerDto.FirstName,
                 LastName = registerDto.LastName,
-                FavouriteClubId = registerDto.FavouriteClubId,
-                ProfilePictureUrl = registerDto.ProfilePictureUrl,
                 Bio = registerDto.Bio
             };
         }
@@ -49,9 +47,29 @@ namespace PitchSwitchBackend.Mappers
                 Email = appUser.Email,
                 FirstName = appUser.FirstName,
                 LastName = appUser.LastName,
+                RegistrationDate = appUser.RegistrationDate,
                 FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
                 ProfilePictureUrl = appUser.ProfilePictureUrl,
                 Bio = appUser.Bio,
+                Posts = appUser.Posts.Select(p => p.FromModelToListElementPostDto()),
+                Applications = appUser.Applications.Select(a => a.FromModelToJournalistStatusApplicationDto())
+            };
+        }
+
+        public static GetUserDto FromModelToGetUserDto(this AppUser appUser)
+        {
+            return new GetUserDto
+            {
+                UserName = appUser.UserName,
+                Email = appUser.Email,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
+                ProfilePictureUrl = appUser.ProfilePictureUrl,
+                Bio = appUser.Bio,
+                RegistrationDate = appUser.RegistrationDate,
+                Posts = appUser.Posts.Select(p => p.FromModelToListElementPostDto()),
+                Applications = appUser.Applications.Select(a => a.FromModelToJournalistStatusApplicationDto())
             };
         }
 
@@ -74,6 +92,7 @@ namespace PitchSwitchBackend.Mappers
         {
             return new MinimalUserDto
             {
+                UserId = appUser.Id,
                 UserName = appUser.UserName,
                 ProfilePictureUrl = appUser.ProfilePictureUrl
             };

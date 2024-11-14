@@ -18,7 +18,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPost("addplayer")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddPlayer([FromBody] AddPlayerDto addPlayerDto)
+        public async Task<IActionResult> AddPlayer([FromForm] AddPlayerDto addPlayerDto)
         {
             if (!ModelState.IsValid)
             {
@@ -46,9 +46,28 @@ namespace PitchSwitchBackend.Controllers
 
             var players = await _playerService.GetPlayers(playerQuery);
 
-            if (players == null || players.Count == 0)
+            if (players == null || players.Items == null || players.Items.Count == 0)
             {
                 return NotFound("There are no players matching the criteria");
+            }
+
+            return Ok(players);
+        }
+
+        [HttpGet("getallminplayers")]
+        [Authorize]
+        public async Task<IActionResult> GetAllMinimalPlayers()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var players = await _playerService.GetAllMinimalPlayers();
+
+            if (players == null || players.Count == 0)
+            {
+                return NotFound("There are no players");
             }
 
             return Ok(players);
@@ -75,7 +94,7 @@ namespace PitchSwitchBackend.Controllers
 
         [HttpPut("updateplayer/{playerId:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdatePlayer([FromRoute] int playerId, [FromBody] UpdatePlayerDto updatePlayerDto)
+        public async Task<IActionResult> UpdatePlayer([FromRoute] int playerId, [FromForm] UpdatePlayerDto updatePlayerDto)
         {
             if (!ModelState.IsValid)
             {
