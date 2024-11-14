@@ -10,6 +10,7 @@ namespace PitchSwitchBackend.Services.AuthService
         Task<ResultDto<NewUserDto>> LoginUser(LoginDto loginDto);
         Task<ResultDto<TokensDto>> RefreshToken(RefreshTokenRequestDto refreshTokenRequestDto);
         Task<AppUser?> FindUserByName(string userName);
+        Task<AppUser?> FindUserByNameWithData(string userName);
         Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUseDataDto);
         Task<IdentityResultDto<string>> ChangePassword(AppUser appUser, ChangePasswordDto changePasswordDto);
         Task<IdentityResultDto<string>> DeleteUser(AppUser appUser);

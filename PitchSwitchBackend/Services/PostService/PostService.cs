@@ -209,8 +209,6 @@ namespace PitchSwitchBackend.Services.PostService
             if (!string.IsNullOrWhiteSpace(postQuery.Content))
                 posts = posts.Where(p => p.Content.ToLower().Contains(postQuery.Content.ToLower()));
 
-            //if (!string.IsNullOrWhiteSpace(postQuery.CreatedByUserId))
-            //    posts = posts.Where(p => p.CreatedByUserId.ToLower().Equals(postQuery.CreatedByUserId));
 
             if (postQuery.CreatedOn != null)
             {

@@ -53,6 +53,22 @@ namespace PitchSwitchBackend.Mappers
             };
         }
 
+        public static GetUserDto FromModelToGetUserDto(this AppUser appUser)
+        {
+            return new GetUserDto
+            {
+                UserName = appUser.UserName,
+                Email = appUser.Email,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
+                ProfilePictureUrl = appUser.ProfilePictureUrl,
+                Bio = appUser.Bio,
+                RegistrationDate = appUser.RegistrationDate,
+                Posts = appUser.Posts.Select(p => p.FromModelToListElementPostDto()),
+            };
+        }
+
         public static UserDto FromModelToUserDto(this AppUser appUser)
         {
             return new UserDto

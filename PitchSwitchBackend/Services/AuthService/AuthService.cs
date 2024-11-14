@@ -119,12 +119,34 @@ namespace PitchSwitchBackend.Services.AuthService
         {
             return await _userManager.FindByNameAsync(userName);
         }
+        public async Task<AppUser?> FindUserByNameWithData(string userName)
+        {
+            var appUsers = _context.Users.AsQueryable().Where(u => u.UserName == userName);
+            var appUser = await appUsers.Include(u => u.FavouriteClub).Include(u => u.Posts).ThenInclude(p => p.Comments).FirstOrDefaultAsync();
+            return appUser;
+        }
+
 
         public async Task<IdentityResultDto<UpdateUserDataResultDto>> UpdateUserData(AppUser appUser, UpdateUserDataDto updateUserDataDto)
         {
             if (!await ValidateClubExists(updateUserDataDto.FavouriteClubId))
             {
                 throw new ArgumentException("Given club does not exist");
+            }
+
+            if (updateUserDataDto.ProfilePicture != null)
+            {
+                var oldPictureUrl = appUser.ProfilePictureUrl;
+                var newPictureUrl = await _imageService.UploadFileAsync(updateUserDataDto.ProfilePicture, UploadFolders.UsersDir);
+                appUser.ProfilePictureUrl = newPictureUrl;
+                if (!string.IsNullOrEmpty(oldPictureUrl))
+                    _imageService.DeleteFile(oldPictureUrl);
+            }
+            else if (updateUserDataDto.IsProfilePictureDeleted)
+            {
+                if (!string.IsNullOrEmpty(appUser.ProfilePictureUrl))
+                    _imageService.DeleteFile(appUser.ProfilePictureUrl);
+                appUser.ProfilePictureUrl = null;
             }
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.FirstName))
@@ -135,11 +157,6 @@ namespace PitchSwitchBackend.Services.AuthService
 
             if (!string.IsNullOrWhiteSpace(updateUserDataDto.Email))
                 appUser.Email = updateUserDataDto.Email;
-
-            if (updateUserDataDto.IsProfilePictureUrlDeleted)
-                appUser.ProfilePictureUrl = null;
-            else if (!string.IsNullOrWhiteSpace(updateUserDataDto.ProfilePictureUrl))
-                appUser.ProfilePictureUrl = updateUserDataDto.ProfilePictureUrl;
 
             if (updateUserDataDto.IsBioDeleted)
                 appUser.Bio = null;
@@ -167,6 +184,7 @@ namespace PitchSwitchBackend.Services.AuthService
                     appUser.FavouriteClub = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
                 }
 
+
                 return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.FromModelToUpdateUserDataDto());
             }
 
@@ -187,8 +205,12 @@ namespace PitchSwitchBackend.Services.AuthService
 
         public async Task<IdentityResultDto<string>> DeleteUser(AppUser appUser)
         {
-            // delete associated data
-
+            foreach (var post in appUser.Posts)
+            {
+                _context.Comments.RemoveRange(post.Comments);
+            }
+            _context.Posts.RemoveRange(appUser.Posts);
+            await _context.SaveChangesAsync();
             var result = await _userManager.DeleteAsync(appUser);
 
             if (result.Succeeded)

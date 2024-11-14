@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PitchSwitchBackend.Dtos.Account.Requests;
+using PitchSwitchBackend.Mappers;
 using PitchSwitchBackend.Services.AuthService;
 using System.Security.Claims;
 
@@ -74,9 +75,47 @@ namespace PitchSwitchBackend.Controllers
             return Unauthorized(new { Message = refreshTokenResult.ErrorMessage, ModelState });
         }
 
+        [HttpGet("getuserbyname/{userName}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByName([FromRoute] string userName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUser = await _authService.FindUserByName(userName);
+
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+            
+            return Ok(appUser.FromModelToGetUserDto());
+        }
+
+        [HttpGet("getuserbynamewithdata/{userName}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByNameWithData([FromRoute] string userName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUser = await _authService.FindUserByNameWithData(userName);
+
+            if (appUser == null)
+            {
+                return NotFound("There is no such user");
+            }
+
+            return Ok(appUser.FromModelToGetUserDto());
+        }
+
         [HttpPut("updateuserdata")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserDataDto updateUserDataDto)
+        public async Task<IActionResult> UpdateUserData([FromForm] UpdateUserDataDto updateUserDataDto)
         {
             if (!ModelState.IsValid)
             {
@@ -150,7 +189,7 @@ namespace PitchSwitchBackend.Controllers
                 return Unauthorized("You are unauthorized");
             }
 
-            var appUser = await _authService.FindUserByName(userName);
+            var appUser = await _authService.FindUserByNameWithData(userName);
             if (appUser == null)
             {
                 return NotFound("There is no such user");
