@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PitchSwitchBackend.Data;
+using PitchSwitchBackend.Dtos;
 using PitchSwitchBackend.Dtos.JournalistStatusApplication.Requests;
 using PitchSwitchBackend.Dtos.JournalistStatusApplication.Responses;
 using PitchSwitchBackend.Helpers;
@@ -51,7 +52,7 @@ namespace PitchSwitchBackend.Services.JournalistStatusApplicationService
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<JournalistStatusApplicationDto>> GetAllApplications(JournalistStatusApplicationQueryObject applicationQuery)
+        public async Task<PaginatedListDto<JournalistStatusApplicationDto>> GetAllApplications(JournalistStatusApplicationQueryObject applicationQuery)
         {
             var applications = _context.JournalistStatusApplications.AsQueryable();
 
@@ -59,13 +60,21 @@ namespace PitchSwitchBackend.Services.JournalistStatusApplicationService
 
             applications = SortApplications(applications, applicationQuery);
 
+            var totalCount = await applications.CountAsync();
+
             var skipNumber = (applicationQuery.PageNumber - 1) * applicationQuery.PageSize;
 
             applications = applications.Include(jsu => jsu.SubmittedByUser);
 
             var filteredApplications = await applications.Skip(skipNumber).Take(applicationQuery.PageSize).ToListAsync();
 
-            return filteredApplications.Select(jsa => jsa.FromModelToJournalistStatusApplicationDto()).ToList();
+            var paginatedApplications = filteredApplications.Select(jsa => jsa.FromModelToJournalistStatusApplicationDto()).ToList();
+
+            return new PaginatedListDto<JournalistStatusApplicationDto>
+            {
+                Items = paginatedApplications,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<JournalistStatusApplicationDto?> UpdateApplication(JournalistStatusApplication application, UpdateJournalistStatusApplicationDto updateDto)

@@ -113,6 +113,25 @@ namespace PitchSwitchBackend.Controllers
             return Ok(appUser.FromModelToGetUserDto());
         }
 
+        [HttpGet("getallminusers")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllMinUsers()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var appUsers = await _authService.GetAllMinUsers();
+
+            if (appUsers == null || appUsers.Count == 0)
+            {
+                return NotFound("There ara no users");
+            }
+
+            return Ok(appUsers);
+        }
+
         [HttpPut("updateuserdata")]
         [Authorize]
         public async Task<IActionResult> UpdateUserData([FromForm] UpdateUserDataDto updateUserDataDto)
@@ -128,7 +147,7 @@ namespace PitchSwitchBackend.Controllers
                 return Unauthorized("You are unauthorized");
             }
 
-            var appUser = await _authService.FindUserByName(userName);
+            var appUser = await _authService.FindUserByNameWithData(userName);
             if (appUser == null)
             {
                 return NotFound("There is no such user");

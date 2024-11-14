@@ -1,4 +1,5 @@
 ﻿using PitchSwitchBackend.Dtos.Club.Responses;
+using PitchSwitchBackend.Dtos.JournalistStatusApplication.Responses;
 using PitchSwitchBackend.Dtos.Post.Responses;
 
 namespace PitchSwitchBackend.Dtos.Account.Responses
@@ -14,5 +15,6 @@ namespace PitchSwitchBackend.Dtos.Account.Responses
         public string? ProfilePictureUrl { get; set; }
         public string? Bio { get; set; }
         public IEnumerable<ListElementPostDto> Posts { get; set; } = new List<ListElementPostDto>();
+        public IEnumerable<JournalistStatusApplicationDto> Applications { get; set; } = new List<JournalistStatusApplicationDto>();
     }
 }

@@ -11,6 +11,6 @@ namespace PitchSwitchBackend.Dtos.JournalistStatusApplication.Responses
         public bool IsReviewed { get; set; }
         public DateTime? ReviewedOn { get; set; }
         public string? RejectionReason { get; set; }
-        public MinimalUserDto SubmittedByUser { get; set; }
+        public MinimalUserDto? SubmittedByUser { get; set; }
     }
 }

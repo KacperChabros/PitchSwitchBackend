@@ -40,7 +40,7 @@ namespace PitchSwitchBackend.Mappers
                 IsReviewed = model.IsReviewed,
                 ReviewedOn = model.ReviewedOn,
                 RejectionReason = model.RejectionReason,
-                SubmittedByUser = model.SubmittedByUser.FromModelToMinimalUserDto()
+                SubmittedByUser = model.SubmittedByUser?.FromModelToMinimalUserDto()
             };
         }
     }

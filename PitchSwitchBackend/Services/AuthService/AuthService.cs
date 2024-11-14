@@ -9,6 +9,7 @@ using PitchSwitchBackend.Models;
 using PitchSwitchBackend.Services.ClubService;
 using PitchSwitchBackend.Services.ImageService;
 using PitchSwitchBackend.Services.TokenService;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace PitchSwitchBackend.Services.AuthService
 {
@@ -122,8 +123,15 @@ namespace PitchSwitchBackend.Services.AuthService
         public async Task<AppUser?> FindUserByNameWithData(string userName)
         {
             var appUsers = _context.Users.AsQueryable().Where(u => u.UserName == userName);
-            var appUser = await appUsers.Include(u => u.FavouriteClub).Include(u => u.Posts).ThenInclude(p => p.Comments).FirstOrDefaultAsync();
+            var appUser = await appUsers.Include(u => u.FavouriteClub).Include(u => u.Posts).ThenInclude(p => p.Comments)
+                .Include(u => u.Applications).FirstOrDefaultAsync();
             return appUser;
+        }
+
+        public async Task<List<MinimalUserDto>> GetAllMinUsers()
+        {
+            var appUsers = _context.Users.AsQueryable();
+            return await appUsers.Select(u => u.FromModelToMinimalUserDto()).ToListAsync();
         }
 
 
@@ -183,7 +191,6 @@ namespace PitchSwitchBackend.Services.AuthService
                 {
                     appUser.FavouriteClub = await _clubService.GetClubById(appUser.FavouriteClubId.GetValueOrDefault());
                 }
-
 
                 return IdentityResultDto<UpdateUserDataResultDto>.Succeeded(appUser.FromModelToUpdateUserDataDto());
             }

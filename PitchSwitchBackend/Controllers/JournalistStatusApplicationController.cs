@@ -58,7 +58,7 @@ namespace PitchSwitchBackend.Controllers
 
             var applications = await _jsaService.GetAllApplications(jsaQuery);
 
-            if (applications == null || applications.Count == 0)
+            if (applications == null || applications.Items == null || applications.Items.Count == 0)
             {
                 return NotFound("There are no applications matching the criteria");
             }
@@ -116,7 +116,7 @@ namespace PitchSwitchBackend.Controllers
             return Ok(updatedApplication);
         }
 
-        [HttpPut("reviewapplications/{applicationId:int}")]
+        [HttpPut("reviewapplication/{applicationId:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReviewApplication([FromRoute] int applicationId, [FromBody] ReviewJournalistStatusApplicationDto reviewDto)
         {
@@ -138,17 +138,29 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpDelete("deleteapplication/{applicationId:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> DeleteApplication([FromRoute] int applicationId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
             var application = await _jsaService.GetApplicationById(applicationId);
             if (application == null)
             {
                 return NotFound("There is no such application");
+            }
+
+
+            if (!application.SubmittedByUserId.Equals(userId))
+            {
+                return Forbid();
             }
 
             await _jsaService.DeleteApplication(application);

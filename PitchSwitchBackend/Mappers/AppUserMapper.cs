@@ -47,9 +47,12 @@ namespace PitchSwitchBackend.Mappers
                 Email = appUser.Email,
                 FirstName = appUser.FirstName,
                 LastName = appUser.LastName,
+                RegistrationDate = appUser.RegistrationDate,
                 FavouriteClub = appUser.FavouriteClub?.FromModelToMinimalClubDto(),
                 ProfilePictureUrl = appUser.ProfilePictureUrl,
                 Bio = appUser.Bio,
+                Posts = appUser.Posts.Select(p => p.FromModelToListElementPostDto()),
+                Applications = appUser.Applications.Select(a => a.FromModelToJournalistStatusApplicationDto())
             };
         }
 
@@ -66,6 +69,7 @@ namespace PitchSwitchBackend.Mappers
                 Bio = appUser.Bio,
                 RegistrationDate = appUser.RegistrationDate,
                 Posts = appUser.Posts.Select(p => p.FromModelToListElementPostDto()),
+                Applications = appUser.Applications.Select(a => a.FromModelToJournalistStatusApplicationDto())
             };
         }
 
