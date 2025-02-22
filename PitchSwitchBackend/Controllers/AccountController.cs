@@ -195,6 +195,7 @@ namespace PitchSwitchBackend.Controllers
         }
 
         [HttpDelete("deleteuser")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser()
         {
             if (!ModelState.IsValid)
