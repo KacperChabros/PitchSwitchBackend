@@ -82,8 +82,13 @@ namespace PitchSwitchBackend.Services.PlayerService
             return await _context.Players.Include(p => p.Club).FirstOrDefaultAsync(p => p.PlayerId == playerId);
         }
 
-        public async Task<Player?> GetPlayerByIdWithAllData(int playerId)
+        public async Task<Player?> GetPlayerByIdWithAllData(int playerId, bool includePosts=false)
         {
+            if(includePosts)
+            {
+                return await _context.Players.Include(p => p.Club).Include(p => p.Transfers).ThenInclude(t => t.Posts).Include(p => p.TransferRumours).ThenInclude(tr => tr.Posts)
+                        .FirstOrDefaultAsync(p => p.PlayerId == playerId);
+            }
             return await _context.Players.Include(p => p.Club).Include(p => p.Transfers).Include(p => p.TransferRumours)
                 .FirstOrDefaultAsync(p => p.PlayerId == playerId);
         }

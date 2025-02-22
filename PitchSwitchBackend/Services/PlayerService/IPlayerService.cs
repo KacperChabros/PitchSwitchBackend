@@ -12,7 +12,7 @@ namespace PitchSwitchBackend.Services.PlayerService
         Task<List<MinimalPlayerDto>> GetAllMinimalPlayers();
         Task<Player?> GetPlayerById(int playerId);
         Task<Player?> GetPlayerWithClubById(int playerId);
-        Task<Player?> GetPlayerByIdWithAllData(int playerId);
+        Task<Player?> GetPlayerByIdWithAllData(int playerId, bool includePosts=false);
         Task<PlayerDto?> UpdatePlayer(Player player, UpdatePlayerDto updatePlayerDto);
         Task DeletePlayer(Player player);
         Task<bool> PlayerExists(int playerId);
