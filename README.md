@@ -1,5 +1,5 @@
 # Pitch Switch Backend
-The repository is a REST API backend part of the project created for Methods of Creating Database Applications course at my University.  
+The repository is a REST API backend part of the project created for Methods of Creating Database Applications course at my University. Frontend part can be accessed [here](https://github.com/KacperChabros/PitchSwitch).  
 The proposed database application is designed for searching information and sharing thoughts about the football transfer market. It allows users to search for information about clubs, players, and transfers, as well as engage in discussions under posts created by sports journalists. Authorized users can add and edit the above information.  
 
 ## Functionalities
