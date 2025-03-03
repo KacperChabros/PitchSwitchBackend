@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PitchSwitchBackend", "PitchSwitchBackend\PitchSwitchBackend.csproj", "{6735B34C-CEF9-4F39-96FA-0A1CE5A6F0CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PitchSwitchBackend", "PitchSwitchBackend\PitchSwitchBackend.csproj", "{6735B34C-CEF9-4F39-96FA-0A1CE5A6F0CE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F23F852B-0167-4F9C-B209-9E6CD7A81A7B}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
